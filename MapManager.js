@@ -17,17 +17,9 @@
 
 
  */
-const Util = require('Util');
-const http = require('http');
+
 const leafelt = require('leaflet');
-const leafletMarkerCluster = require('leaflet.markercluster');
-const geometryUtil = require('leaflet-geometryutil');
-const leafletDraw = require('leaflet-draw');
-const snap = require(`leaflet-snap`);
-const pointsLayer = require(`./pointsLayer`);
 'use strict';
-
-
 
 if (L != undefined) {
 

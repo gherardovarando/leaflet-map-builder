@@ -1,0 +1,27 @@
+{
+    "name": "mapmanager",
+    "version": "0.0.1",
+    "description": "leaflet map manager",
+    "main": "MapManager.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/gherardovarando/MapManager.git"
+    },
+    "keywords": [
+        "map",
+        "leaflet",
+        "atlas"
+    ],
+    "dependencies": {
+        "leaflet": "1.0.2"
+    },
+    "author": "Gherardo Varando <gherardo.varando@gmail.com>",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/gherardovarando/MapManager/issues"
+    },
+    "homepage": "https://github.com/gherardovarando/MapManager#readme"
+}
