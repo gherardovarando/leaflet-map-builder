@@ -17,28 +17,40 @@
 
 
  */
+'use strict';
 
 const leafelt = require('leaflet');
-'use strict';
 
 if (L != undefined) {
 
     L.MapBuilder = L.Evented.extend({
         _map: null,
         _configuration: {},
+        _events: [],
         _layers: {},
-        _controls: [],
+        _controls: {},
         _activeBaseLayer: null,
         _options: {
             drawingColor: "#ed8414",
-            drawControl: false,
-            layerControl: false,
-            externalControl: true,
-            region: {
+            controls: {
+                draw: false,
+                zoom: false,
+                layers: false
+            }
+            externalControl: false,
+            polygon: {
                 tooltip: false,
                 popup: false
             },
             marker: {
+                tooltip: false,
+                popup: false
+            },
+            rectangle: {
+                tooltip: false,
+                popup: false
+            },
+            circle: {
                 tooltip: false,
                 popup: false
             }
@@ -58,7 +70,7 @@ if (L != undefined) {
 
 
         setMap: function(map) {
-            if (map) {
+            if (map instanceof L.Map) {
                 this._map = map;
                 this.fire("map-added", map);
             } else {
@@ -78,7 +90,7 @@ if (L != undefined) {
             if (configuration.type.includes("map")) {
                 return configuration;
             } else {
-                throw 'ERROR: configuration json must have "type":"..map.." ';
+                throw 'ERROR: configuration must have "type":"..map.." ';
             }
         },
 
@@ -90,13 +102,16 @@ if (L != undefined) {
                 });
                 this.reload();
             } catch (e) {
+                this.setConfiguration({
+                    type: 'map'
+                });
                 throw e;
             }
         },
 
         // return a copy of the configuration object
         getConfiguration: function() {
-            return Object.assign({},this._configuration);
+            return Object.assign({}, this._configuration);
         },
 
         //return the data
@@ -117,24 +132,19 @@ if (L != undefined) {
                 this._map.eachLayer((layer) => {
                     this._map.removeLayer(layer);
                 });
-                if (this._drawControl) {
-                    this._map.removeControl(this._drawControl);
+                if (this._controls.draw instanceof L.Control.Draw) {
+                    this._map.removeControl(this._controls.draw);
                 }
-                if (this._layerControl) {
-                    this._map.removeControl(this._layerControl);
+                if (this._controls.layers instanceof L.Control.Layers) {
+                    this._map.removeControl(this._controls.layers);
                 }
-                this._map.off("draw:created");
-                this._map.off("draw:edited");
-                this._map.off("draw:deleted");
-                this._map.off("draw:created");
-                this._map.off("draw:drawstart");
-                this._map.off("draw:drawstop");
-                this._map.off("draw:editstart");
-                this._map.off("draw:editstop");
-                this._map.off("draw:deletestart");
-                this._map.off("draw:deletestop");
+                if (this._controls.draw instanceof L.Control.Zoom) {
+                    this._map.removeControl(this._controls.zoom);
+                }
+                this._removeMapListener();
             }
             this._state.baseLayerOn = false;
+            this._events = [];
             this._data = {
                 points: [],
                 pixels: [],
@@ -142,17 +152,17 @@ if (L != undefined) {
             this._configuration = {
                 type: 'map'
             };
-            this._tilesLayers = [];
-            this._imageLayers = [];
-            this._pointsLayers = [];
-            this._pixelsLayers = [];
-            this._gridLayers = [];
-            this._guideLayers = [];
-            this._polygons = [];
-            this._markers = [];
-            this._pointsLayersD = [];
+            this._layers = {};
             this._activeBaseLayer = null;
             this.fire('clean');
+        },
+
+        _removeMapListener: function() {
+            if (this._map) {
+                this._events.map((ev) => {
+                    this._map.off(ev);
+                });
+            }
         },
 
         reload: function() {
@@ -196,15 +206,6 @@ if (L != undefined) {
             if (typeof color === 'string') this._configuration.drawingColor = color;
         },
 
-        _loadMapOptions: function() {
-            if (this._configuration) {
-                this._map.setMinZoom(this._configuration.minZoom);
-                if (this._configuration.maxZoom) {
-                    this._map.setMaxZoom(this._configuration.maxZoom || 10);
-                }
-            }
-        },
-
         setMaxZoom: function(zoom) {
             this._map.setMaxZoom(zoom);
             this.fire('set:maxZoom', {
@@ -219,140 +220,6 @@ if (L != undefined) {
             });
         },
 
-        getUnitCal: function() {
-            let unit = "u";
-            if (this._activeBaseLayer) {
-                depth = this._activeBaseLayer._configuration.unitCal || depth;
-            } else {
-                let temp = this.getLayers('tilesLayer')[0];
-                if (!temp) {
-                    temp = this.getLayers('imageLayer')[0];
-                }
-                if (temp) {
-                    size = temp._configuration.unitCal || depth;
-                }
-            }
-            return depth;
-        },
-
-        getDepthCal: function() {
-            let depth = 1;
-            if (this._activeBaseLayer) {
-                depth = this._activeBaseLayer._configuration.depthCal || depth;
-            } else {
-                let temp = this.getLayers('tilesLayer')[0];
-                if (!temp) {
-                    temp = this.getLayers('imageLayer')[0];
-                }
-                if (temp) {
-                    size = temp._configuration.depthCal || depth;
-                }
-            }
-            return depth;
-        },
-
-        getSize: function() { //this is the maximum of the 2 dimension
-            let temp = this.getSizes();
-            return Math.max(temp[0], temp[1]);
-        },
-
-        getSizeCal: function() {
-            let temp = this.getSizesCal();
-            return Math.max(temp[0], temp[1]);
-        },
-
-        getSizes: function() {
-            let size = [256, 256];
-            if (this._activeBaseLayer) {
-                size = this._activeBaseLayer._configuration.size || this._activeBaseLayer._configuration.tileSize || 256;
-            } else {
-                let temp = this.getLayers('tilesLayer')[0];
-                if (!temp) {
-                    temp = this.getLayers('imageLayer')[0];
-                }
-                if (temp) {
-                    size = temp._configuration.size || temp._configuration.tileSize || [256, 256];
-                }
-            }
-            if (typeof size === 'number') {
-                return [size, size];
-            }
-            if (size.x && size.y) {
-                return [size.x, size.y];
-            }
-            if (Array.isArray(size)) {
-                return (size);
-            }
-        },
-
-        getSizesCal: function() {
-            let size = [256, 256];
-            if (this._activeBaseLayer) {
-                size = this._activeBaseLayer._configuration.sizeCal || this._activeBaseLayer._configuration.tileSize || 256;
-            } else {
-                let temp = this.getLayers('tilesLayer')[0];
-                if (!temp) {
-                    temp = this.getLayers('imageLayer')[0];
-                }
-                if (temp) {
-                    size = temp._configuration.sizeCal || temp._configuration.tileSize || [256, 256];
-                }
-            }
-            if (typeof size === 'number') {
-                return [size, size];
-            }
-            if (size.x && size.y) {
-                return [size.x, size.y];
-            }
-            if (Array.isArray(size)) {
-                return (size);
-            }
-        },
-
-        getLayers: function(types) {
-            if (Array.isArray(types)) {
-                return types.map((t) => {
-                    return this.getLayers(t);
-                });
-            } else if (typeof types === 'string') {
-                switch (types) {
-                    case "tilesLayer":
-                        return this._tilesLayers;
-                        break;
-                    case "imageLayer":
-                        return this._imageLayers;
-                        break;
-                    case "pointsLayer":
-                        return this._pointsLayers;
-                        break;
-                    case "pointsLayerMarkers":
-                        return this._pointsLayersD;
-                        break;
-                    case "pixelsLayer":
-                        return this._pixelsLayers;
-                        break;
-                    case "guideLayer":
-                        return this._guideLayers;
-                        break;
-                    case "drawnPolygons":
-                        return this._drawnPolygons;
-                        break;
-                    case 'polygons':
-                        return this._polygons;
-                        break;
-                    case 'markers':
-                        return this._markers;
-                        break;
-                    default:
-                        return null;
-                }
-            } else if (types === undefined || types === null || !types) {
-                return this.getLayers(['tilesLayer', 'pointsLayer', 'pixelsLayer', 'guideLayer', 'polygons', 'markers']);
-            }
-
-        },
-
-        //create the correspondent leaflet layer (in case) and add it to the map or to the layerControl
         _loadLayer: function(layerConfiguration) {
             layer.id = this._layerindx;
             this._layerindx++;
@@ -432,6 +299,11 @@ if (L != undefined) {
             });
         },
 
+        onMap: function(ev, cl) {
+            this._events.push(ev);
+            this._map.on(ev, cl);
+        },
+
 
         reloadLayer: function(layer) {
             this.removeLayer(layer);
@@ -443,55 +315,42 @@ if (L != undefined) {
             this._drawnItems = new L.FeatureGroup(); //where items are stored
             this._map.addLayer(this._drawnItems);
             if (this._layerControl) {
-                this._layerControl.addOverlay(this._drawnItems, "Drawn Regions");
+                this._layerControl.addOverlay(this._drawnItems, "Drawn Items");
             }
             this.fire('add:drawnitems', {
                 layer: this._drawnItems
             })
         },
 
-        addDrawControl: function() {
+        _addDrawControl: function() {
+            if (!L.Control.Draw) return;
             if (!(this._drawnItems instanceof L.FeatureGroup)) {
                 this.addDrawnItems();
             }
-            let drawnItems = this._drawnItems;
-            let drawControl = new L.Control.Draw({
-                position: "bottomleft", //position of the control
-                edit: {
-                    featureGroup: drawnItems, //specifies where to store the items
-                    edit: {},
-                    remove: {}
-                },
-                draw: {
-                    polyline: false,
-                    circle: false,
-                    marker: true,
-                    rectangle: {
-                        showArea: false
-                    },
-                    polygon: {
-                        showArea: false,
-                        allowIntersection: false
-                    }
+            let options = {};
+            if (!this._options.drawControl) {
+                options.draw = false;
+                options.edit = false;
+            } else {
+                Object.assign(options, this._options.drawControl);
+                if (options.draw) {
+                    options.draw = Object.assign({}, options.draw);
                 }
-            });
+                if (options.edit) {
+                    options.edit = Object.assign({}, options.edit);
+                    options.edit = Object.assign(options.edit, {
+                        featureGroup: this._drawnItems
+                    });
+                }
+            }
+            let drawControl = new L.Control.Draw(options);
             this._drawControl = drawControl;
             this._map.addControl(drawControl);
-
             this._map.on('draw:created', (e) => {
                 this._map.dragging.enable();
                 let type = e.layerType,
                     layer = e.layer;
-
-                if (type === 'marker') {
-                    this.addMarker(layer, true);
-                } else {
-                    layer.setStyle({
-                        color: this.getDrawingColor(),
-                        fillColor: this.getDrawingColor(),
-                    });
-                    this.addPolygon(layer, true);
-                }
+                this._drawnItems.addLayer(layer);
             });
 
             // when items are removed
@@ -502,7 +361,6 @@ if (L != undefined) {
                         this.removePolygon(layer, false);
                     } else {
                         this.removeMarker(layer, false);
-
                     }
 
                 });
@@ -521,15 +379,14 @@ if (L != undefined) {
 
         },
 
-        addLayerControl: function() {
-            this._layerControl = L.control.layers(null, null, {
-                position: "bottomleft",
-                hideSingleBase: "true"
+        _addLayerControl: function() {
+            let options = Object.assign({}, this._options.controls.layers);
+            this._controls.layers = L.control.layers(null, null, options);
+            this._map.addControl(this._controls.layers);
+            this.fire('add:control', {
+                type: 'layers',
+                control: this._controls.layers
             });
-            this._map.addControl(this._layerControl);
-            this.fire('add:layercontrol', {
-                control: this._layerControl
-            })
         },
 
         loadPolygon: function(layer, group) {
