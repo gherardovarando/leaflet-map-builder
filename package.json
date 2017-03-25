@@ -1,7 +1,7 @@
 {
-    "name": "mapmanager",
+    "name": "leaflet-map-builder",
     "version": "0.0.1",
-    "description": "leaflet map manager",
+    "description": "leaflet map builder from configuration file (json)",
     "main": "MapManager.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,7 +16,7 @@
         "atlas"
     ],
     "dependencies": {
-        "leaflet": "1.0.2"
+        "leaflet": "~1.0.2"
     },
     "author": "Gherardo Varando <gherardo.varando@gmail.com>",
     "license": "GPL-3.0",
