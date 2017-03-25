@@ -220,6 +220,12 @@ if (L != undefined) {
             });
         },
 
+        loadLayer(configuration){
+          if (this._layers[configuration.name]){
+             this._updateLayer(configuration.name);
+          }
+        },
+
         _loadLayer: function(layerConfiguration) {
             layer.id = this._layerindx;
             this._layerindx++;
@@ -268,6 +274,11 @@ if (L != undefined) {
             }
         },
 
+        _updateLayer: function(name){
+          if (!this._layers[name]) return;
+          
+        },
+
         addLayer: function(layerConfiguration) {
             layer.id = this._layerindx;
 
@@ -305,13 +316,8 @@ if (L != undefined) {
         },
 
 
-        reloadLayer: function(layer) {
-            this.removeLayer(layer);
-            this.addLayer(layer);
-        },
 
-
-        addDrawnItems: function() {
+        _addDrawnItems: function() {
             this._drawnItems = new L.FeatureGroup(); //where items are stored
             this._map.addLayer(this._drawnItems);
             if (this._layerControl) {
