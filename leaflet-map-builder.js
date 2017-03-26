@@ -24,7 +24,7 @@ const leafelt = require('leaflet');
 if (L != undefined) {
 
     L.MapBuilder = L.Evented.extend({
-        _map: null,
+        _l: null,
         _configuration: {},
         _events: [],
         _layers: {},
@@ -35,9 +35,8 @@ if (L != undefined) {
             controls: {
                 draw: false,
                 zoom: false,
-                layers: false
+                layers: false // logical, options of configuration or function for external control
             }
-            externalControl: false,
             polygon: {
                 tooltip: false,
                 popup: false
@@ -88,7 +87,7 @@ if (L != undefined) {
             }
             configuration.type = configuration.type || 'undefined';
             if (configuration.type.includes("map")) {
-                return configuration;
+                return Object.assign({}, configuration);
             } else {
                 throw 'ERROR: configuration must have "type":"..map.." ';
             }
@@ -113,12 +112,6 @@ if (L != undefined) {
         getConfiguration: function() {
             return Object.assign({}, this._configuration);
         },
-
-        //return the data
-        getData: function() {
-            return this._data;
-        },
-
 
         setOptions: function(options) {
             if (!options) return;
@@ -145,10 +138,6 @@ if (L != undefined) {
             }
             this._state.baseLayerOn = false;
             this._events = [];
-            this._data = {
-                points: [],
-                pixels: [],
-            };
             this._configuration = {
                 type: 'map'
             };
@@ -220,72 +209,72 @@ if (L != undefined) {
             });
         },
 
-        loadLayer(configuration){
-          if (this._layers[configuration.name]){
-             this._updateLayer(configuration.name);
-          }
+        loadLayer(configuration) {
+            if (this._layers[configuration.name]) {
+                this._updateLayer(configuration.name);
+            } else {
+                this._loadLayer(configuration);
+            }
         },
 
         _loadLayer: function(layerConfiguration) {
-            layer.id = this._layerindx;
-            this._layerindx++;
+            let layer;
             switch (layer.type) {
                 case 'tilesLayer':
-                    this.loadTilesLayer(layer);
+                    layer = this._loadTilesLayer(layerConfiguration);
                     break;
                 case 'pointsLayer':
-                    this.loadPointsLayer(layer);
+                    layer = this._loadPointsLayer(layerConfiguration);
                     break;
                 case 'pixelsLayer':
-                    this.loadPixelsLayer(layer);
+                    layer = this._loadPixelsLayer(layerConfiguration);
                     break;
                 case 'polygon':
-                    this.loadPolygon(layer);
+                    layer = this._loadPolygon(layerConfiguration);
                     break;
                 case 'marker':
-                    this.loadMarker(layer);
+                    layer = this._loadMarker(layerConfiguration);
                     break;
                 case 'circleMarker':
-                    this.loadCircleMarker(layer);
+                    layer = this._loadCircleMarker(layerConfiguration);
                     break;
                 case 'guideLayer':
-                    this.loadGuideLayer(layer);
+                    layer = this._loadGuideLayer(layerConfiguration);
                     break;
                 case 'drawnPolygons':
-                    this.loadDrawnPolygons(layer);
+                    layer = this._loadDrawnPolygons(layerConfiguration);
                     break;
                 case 'polygons':
-                    this.loadPolygons(layer);
+                    layer = this._loadPolygons(layerConfiguration);
                     break;
                 case 'drawnMarkers':
-                    this.loadDrawnMarkers(layer);
+                    layer = this._loadDrawnMarkers(layerConfiguration);
                     break;
                 case 'imageLayer':
-                    this.loadImageLayer(layer);
+                    layer = this._loadImageLayer(layerConfiguration);
                     break;
                 case 'featureGroup':
-                    this.loadFeatureGroup(layer);
+                    layer = this._loadFeatureGroup(layerConfiguration);
                     break;
                 case 'layerGroup':
-                    this.loadLayerGroup(layer);
+                    layer = this._loadLayerGroup(layerConfiguration);
                     break;
                 default:
                     return;
             }
         },
 
-        _updateLayer: function(name){
-          if (!this._layers[name]) return;
-          
+        _updateLayer: function(name) {
+            if (!this._layers[name]) return;
+
         },
 
         addLayer: function(layerConfiguration) {
             layer.id = this._layerindx;
-
         },
 
         //the leafletlayer
-        removeLayer: function(layer) {
+        removeLayer: function(name) {
             let configuration;
             let llayer;
             if (typeof layer.addTo === 'function') {
@@ -315,7 +304,9 @@ if (L != undefined) {
             this._map.on(ev, cl);
         },
 
-
+        offMap: function(ev) {
+            this._map.off(ev);
+        },
 
         _addDrawnItems: function() {
             this._drawnItems = new L.FeatureGroup(); //where items are stored
@@ -385,7 +376,8 @@ if (L != undefined) {
 
         },
 
-        _addLayerControl: function() {
+        _addLayersControl: function() {
+            if (typeof this._options.controls.layers === 'function') return; //external controls
             let options = Object.assign({}, this._options.controls.layers);
             this._controls.layers = L.control.layers(null, null, options);
             this._map.addControl(this._controls.layers);
@@ -395,55 +387,61 @@ if (L != undefined) {
             });
         },
 
-        loadPolygon: function(layer, group) {
-            let lyjson = {};
-            this._indx++;
-            if (!layer.getLatLngs) {
-                lyjson = layer; //we assume layer is written in json format with at least a latlngs field
-                lyjson.options = lyjson.options || {};
-                lyjson.name = lyjson.name || `Region ${this._indx}`;
-                layer = L.polygon(lyjson.latlngs ||
-                    lyjson.latLngs ||
-                    lyjson.path ||
-                    lyjson.points ||
-                    lyjson.coordinates ||
-                    lyjson.coords || [lyjson.lats || lyjson.y, lyjson.langs || lyjson.x]);
-                layer.setStyle({
-                    color: lyjson.options.color || lyjson.color || this.getDrawingColor(),
-                    opacity: lyjson.options.opacity || lyjson.opacity || 1,
-                    weight: lyjson.options.weight || lyjson.weight || 3,
-                    fill: true,
-                    fillColor: lyjson.options.fillColor || lyjson.fillColor || this.getDrawingColor(),
-                    fillOpacity: lyjson.options.fillOpacity || lyjson.fillOpacity || 0.3
-                });
-            } else { //assume the layer is already a L.polygon
-                lyjson = {
-                    latlngs: layer.getLatLngs(),
-                    name: `Region ${this._indx}`,
-                    options: layer.options
-                };
+        _addZoomControl: function() {
+            let options = Object.assign({}, this._options.controls.zoom);
+            this._controls.zoom = L.control.zoom(options);
+            this._map.addControl(this._controls.zoom);
+            this.fire('add:control', {
+                type: 'zoom',
+                control: this._controls.zoom
+            });
+        },
+
+        _addAttributionControl: function() {
+            let options = Object.assign({}, this._options.controls.attribution);
+            this._controls.attribution = L.control.attribution(options);
+            this._map.addControl(this._controls.attribution);
+            this.fire('add:control', {
+                type: 'atttribution',
+                control: this._controls.attribution
+            });
+        },
+
+        _loadPolygon: function(configuration, where) {
+            if (!where) {
+                if (this._layers.drawnItems) {
+                    where = this._layers.drawnItems;
+                } else {
+                    where = this;
+                }
             }
+            configuration.name = configuration.name || `Region ${this._indx++}`;
+            layer = L.polygon(lyjson.latlngs ||
+                lyjson.latLngs ||
+                lyjson.path ||
+                lyjson.points ||
+                lyjson.coordinates ||
+                lyjson.coords || [lyjson.lats || lyjson.y, lyjson.langs || lyjson.x], configuration.options);
             if (this._options.region.tooltip) {
-                layer.bindTooltip(lyjson.name);
+                layer.bindTooltip(configuration.name);
+            } else if (configuration.tooltip) {
+                layer.bindTooltip(configuration.tooltip.content, configuration.tooltip.options);
             }
             if (this._options.region.popup) {
-                layer.bindPopup(`<strong>${lyjson.name}</strong> <p> ${lyjson.details || ''}</p>`);
+                layer.bindPopup(`<strong>${configuration.name}</strong> <p> ${configuration.details || ''}</p>`);
+            } else if (configuration.popup) {
+                layer.bindPopup(configuration.popup.content, configuration.popup.options);
             }
-            layer.group = group;
-            if (group) {
-                group.addLayer(layer);
-            } else if (this._drawnItems) {
-                this._drawnItems.addLayer(layer);
-                this._drawnPolygons.push(layer);
-            } else {
-                this._map.addLayer(layer);
-            }
-            lyjson.id = this._indx;
-            layer._id = lyjson.id;
-            layer._configuration = lyjson;
-            this._polygons.push(layer);
-            this.fire('add:polygon', {
-                layer: layer
+
+            where._l.addLayer(layer);
+            where.configuration.layers[configuration.name] = {
+              _l = layer,
+              configuration = configuration
+            };
+
+            this.fire('load:polygon', {
+                layer: layer,
+                configuration: configuration
             });
         },
 
@@ -461,7 +459,14 @@ if (L != undefined) {
             }
         },
 
-        addMarker: function(layer, addToConfiguration, group) {
+        _loadMarker: function(layer, where) {
+            if (!where) {
+                if (this._drawnItems) {
+                    where = this._drawnItems;
+                } else {
+                    where = this._map;
+                }
+            }
             let lyjson = {};
             this._indx++;
             if (!layer.getLatLng) {
