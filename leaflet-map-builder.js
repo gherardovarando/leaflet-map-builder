@@ -30,11 +30,16 @@ if (L != undefined) {
     L.MapBuilder = L.Evented.extend({
         _l: null,
         _indx: 0,
-        _configuration: {},
+        _configuration: {
+            layers: {}
+        },
         _events: [],
         _layers: {},
         _controls: {},
         _activeBaseLayer: null,
+        _state: {
+            baseLayerOn: false
+        },
         _options: {
             drawingColor: "#ed8414",
             controls: {
@@ -67,7 +72,8 @@ if (L != undefined) {
             this.setMap(map);
             this.setOptions(options);
             this.setConfiguration(configuration || {
-                type: 'map'
+                type: 'map',
+                layers: {}
             });
 
         },
@@ -110,18 +116,11 @@ if (L != undefined) {
         },
 
         setConfiguration: function(configuration) {
-            try {
-                this._configuration = this._parse(configuration);
-                this.fire('set:configuration', {
-                    configuration: configuration
-                });
-                this.reload();
-            } catch (e) {
-                this.setConfiguration({
-                    type: 'map'
-                });
-                throw e;
-            }
+            this._configuration = this._parse(configuration);
+            this.fire('set:configuration', {
+                configuration: configuration
+            });
+            this.reload();
         },
 
         // return a copy of the configuration object
@@ -154,12 +153,11 @@ if (L != undefined) {
                 this._removeMapListener();
             }
             this._events = [];
-            this._configuration = {
-                type: 'map',
-                layers: {}
-            };
             this._layers = {};
             this._controls = {};
+            this._state = {
+                baseLayerOn: false
+            }
             this._activeBaseLayer = null;
             this.fire('clean');
         },
@@ -259,7 +257,6 @@ if (L != undefined) {
             }
             if ((!where._layers) || (!where._configuration) || (!where._configuration.layers)) {
                 console.log('Destination does not permit adding layer, you can just add a layer to the map, featureGroup, layerGroup and similar');
-                console.log(where);
                 return;
             }
             if (where._layers[configuration.name]) {
@@ -282,13 +279,12 @@ if (L != undefined) {
             configuration.name = configuration.name || `${configuration.type}_${this._indx++}`;
             if (where._layers[configuration.name]) {
                 console.log('already a layer with the given name')
-                console.log(configuration);
                 return;
             }
             let layer;
             switch (configuration.type) {
-                case 'tilesLayer':
-                    layer = this._loadTilesLayer(configuration);
+                case 'tileLayer':
+                    layer = this._loadTileLayer(configuration);
                     break;
                 case 'polygon':
                     layer = this._loadPolygon(configuration);
@@ -379,6 +375,10 @@ if (L != undefined) {
             if (!where._layers) return;
             if (!where._layers[name]) return;
             where._l.removeLayer(where._layers[name]._l);
+            if (this._controls.layers) {
+                this._controls.layers.removeLayer(where._layers[name]._l);
+            }
+            this._controls.layers.
             delete where._layers[name];
             delete where._configuration.layers[name];
             this.fire('remove:layer', {
@@ -773,7 +773,7 @@ if (L != undefined) {
         },
 
 
-        _loadTilesLayer: function(configuration, where) {
+        _loadTileLayer: function(configuration, where) {
             if (!where) {
                 where = this;
             }
@@ -782,26 +782,33 @@ if (L != undefined) {
             }
             //create layer
             if (configuration.tilesUrlTemplate) { //check if there is the tilesUrlTemplate
-                let options = Object.assign({}, configuration.options);
-                if (Array.isArray(options.tileSize)) {
-                    options.tileSize = L.point(options.tileSize[0], options.tileSize[1]);
-                }
-                if (options.tileSize.x && options.tileSize.y) {
-                    options.tileSize = L.point(options.tileSize.x, options.tileSize.y);
+                let options = Object.assign({}, configuration.options || configuration);
+                if (options.tileSize) {
+                    if (Array.isArray(options.tileSize)) {
+                        options.tileSize = L.point(options.tileSize[0], options.tileSize[1]);
+                    }
+                    if (options.tileSize.x && options.tileSize.y) {
+                        options.tileSize = L.point(options.tileSize.x, options.tileSize.y);
+                    }
+                } else {
+                    options.tileSize = 256;
                 }
 
                 let layer = L.tileLayer(configuration.tilesUrlTemplate, options);
-                wherer._layers[configuration.name] = layer;
+                where._layers[configuration.name] = {
+                    _l: layer,
+                    _configuration: configuration
+                }
 
                 if (this._controls.layers) {
                     if (configuration.baseLayer) {
                         this._controls.layers.addBaseLayer(layer, configuration.name);
                         if (!this._state.baseLayerOn) {
-                            this._map.addLayer(layer);
+                            this._l.addLayer(layer);
                             this._state.baseLayerOn = true;
                         }
                     } else {
-                        this._layerControl.addOverlay(layer, options.name);
+                        this._controls.layers.addOverlay(layer, options.name);
                     }
                 } else if (typeof this._options.controls.layers === 'function') {
                     this._options.controls.layers(layer, configuration, where);
