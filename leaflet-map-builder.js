@@ -181,7 +181,7 @@ if (L != undefined) {
                     this._addLayersControl();
                 }
                 if (this._options.controls.draw) {
-                    this._addDrawnItems();
+                    //this._addDrawnItems();
                     this._addDrawControl();
                 }
                 if (this._options.controls.zoom) {
@@ -253,11 +253,13 @@ if (L != undefined) {
             if (!configuration) return;
             if (typeof where === 'string') {
                 where = this._layers[where];
-            } else {
+            }
+            if (!where) {
                 where = this;
             }
-            if ((!where._layers) || (!where._configuration.layers)) {
+            if ((!where._layers) || (!where._configuration) || (!where._configuration.layers)) {
                 console.log('Destination does not permit adding layer, you can just add a layer to the map, featureGroup, layerGroup and similar');
+                console.log(where);
                 return;
             }
             if (where._layers[configuration.name]) {
@@ -271,17 +273,22 @@ if (L != undefined) {
 
         _loadLayer: function(configuration, where) {
             if (!configuration) return;
+            if (typeof where === 'string') {
+                where = this._layers[where];
+            }
+            if (!where) {
+                where = this;
+            }
             configuration.name = configuration.name || `${configuration.type}_${this._indx++}`;
+            if (where._layers[configuration.name]) {
+                console.log('already a layer with the given name')
+                console.log(configuration);
+                return;
+            }
             let layer;
             switch (configuration.type) {
                 case 'tilesLayer':
                     layer = this._loadTilesLayer(configuration);
-                    break;
-                case 'pointsLayer':
-                    layer = this._loadPointsLayer(configuration);
-                    break;
-                case 'pixelsLayer':
-                    layer = this._loadPixelsLayer(configuration);
                     break;
                 case 'polygon':
                     layer = this._loadPolygon(configuration);
@@ -300,15 +307,6 @@ if (L != undefined) {
                     break;
                 case 'guideLayer':
                     layer = this._loadGuideLayer(configuration);
-                    break;
-                case 'drawnPolygons':
-                    layer = this._loadDrawnPolygons(configuration);
-                    break;
-                case 'polygons':
-                    layer = this._loadPolygons(configuration);
-                    break;
-                case 'drawnMarkers':
-                    layer = this._loadDrawnMarkers(configuration);
                     break;
                 case 'imageLayer':
                     layer = this._loadImageLayer(configuration);
@@ -337,8 +335,16 @@ if (L != undefined) {
             }
         },
 
-        _updateLayer: function(name) {
-            if (!this._layers[name]) return;
+        setLayerStyle(name, style, where) {
+            if (!where) {
+                where = this;
+            }
+            if (!where._layers) return;
+            if (!where._layers[name]) return;
+
+            if (where._layers[name]._l.setStyle) {
+                where._layers[name]._l.setStyle(style);
+            }
 
         },
 
@@ -370,8 +376,9 @@ if (L != undefined) {
             if (!where) {
                 where = this;
             }
+            if (!where._layers) return;
             if (!where._layers[name]) return;
-            where.removeLayer(where._layers[name]._l);
+            where._l.removeLayer(where._layers[name]._l);
             delete where._layers[name];
             delete where._configuration.layers[name];
             this.fire('remove:layer', {
@@ -381,32 +388,24 @@ if (L != undefined) {
 
 
         _addDrawnItems: function() {
-            this._drawnItems = new L.FeatureGroup(); //where items are stored
-            this._l.addLayer(this._drawnItems);
-            if (this._layerControl) {
-                this._layerControl.addOverlay(this._drawnItems, "Drawn Items");
-            }
-            this._layers.drawnItems = {
-                _l: this._drawnItems,
-                _layers: {},
-                _configuration: {
-                    name: 'drawnItems',
-                    type: 'featureGroup',
-                    layers: {}
-                }
-            }
-            this._configuration.layers.drawnItems = this._layers.drawnItems._configuration;
+            this.addLayer({
+                name: 'drawnItems',
+                type: 'featureGroup',
+                layers: {}
+            }, this);
             this.fire('add:drawnitems', {
-                layer: this._drawnItems
+                layer: this._layers.drawnItems._l,
+                configuration: this._layers.drawnItems._configuration
             });
         },
 
 
         _addDrawControl: function() {
             if (!L.Control.Draw) return;
-            if (!(this._drawnItems instanceof L.FeatureGroup)) {
-                this.addDrawnItems();
+            if (!this._layers.drawnItems) {
+                this._addDrawnItems();
             }
+            let drawnItems = this._layers.drawnItems._l
             let options = {};
             if (!this._options.controls.draw) {
                 options.draw = false;
@@ -429,7 +428,7 @@ if (L != undefined) {
                 if (options.edit) {
                     options.edit = Object.assign({}, options.edit);
                     options.edit = Object.assign(options.edit, {
-                        featureGroup: this._drawnItems
+                        featureGroup: drawnItems
                     });
                 }
             }
@@ -504,12 +503,45 @@ if (L != undefined) {
             });
         },
 
-        _loadFeatureGroup: function() {
+        _loadFeatureGroup: function(configuration) {
+            configuration.name = configuration.name || `${configuration.type}${this._indx++}`;
+            configuration.layers = configuration.layers || {};
+            let layer = L.featureGroup();
+            this._l.addLayer(layer);
+            this._layers[configuration.name] = {
+                _l: layer,
+                _configuration: configuration,
+                _layers: {}
+            }
+            this._configuration.layers[configuration.name] = configuration;
+            Object.keys(configuration.layers).map((key) => {
+                this._loadLayer(configuration.layers[key], this._layers[configuration.name]);
+            });
+            this.fire(`load:featuregroup`, {
+                layer: layer,
+                configuration: configuration
+            });
 
         },
 
         _loadLayerGroup: function() {
-
+            configuration.name = configuration.name || `${configuration.type}${this._indx++}`;
+            configuration.layers = configuration.layers || {};
+            let layer = L.featureGroup();
+            this._l.addLayer(layer);
+            this._layers[configuration.name] = {
+                _l: layer,
+                _configuration: configuration,
+                _layers: {}
+            }
+            this._configuration.layers[configuration.name] = configuration;
+            Object.keys(configuration.layers).map((key) => {
+                this._loadLayer(configuration.layers[key], this._layers[configuration.name]);
+            });
+            this.fire(`load:layergroup`, {
+                layer: layer,
+                configuration: configuration
+            });
         },
 
         _loadPolygon: function(configuration, where) {
@@ -520,6 +552,9 @@ if (L != undefined) {
                     where = this;
                 }
             }
+            if (typeof where == 'string') {
+                where = this._layers[where];
+            }
             let layer = L.polygon(configuration.latlngs ||
                 configuration.latLngs ||
                 configuration.path ||
@@ -528,10 +563,11 @@ if (L != undefined) {
                 configuration.coords || [configuration.lats || configuration.y, configuration.langs || configuration.x], configuration.options || {});
 
             where._l.addLayer(layer);
-            where._configuration.layers[configuration.name] = {
+            where._configuration.layers[configuration.name] = configuration;
+            where._layers[configuration.name] = {
                 _l: layer,
                 _configuration: configuration
-            };
+            }
 
             this.fire('load:polygon', {
                 layer: layer,
@@ -542,8 +578,6 @@ if (L != undefined) {
                 _l: layer,
                 _configuration: configuration
             };
-
-
         },
 
         _loadRectangle: function(configuration, where) {
@@ -562,7 +596,8 @@ if (L != undefined) {
                 configuration.coords || [configuration.lats || configuration.y, configuration.langs || configuration.x], configuration.options || {});
 
             where._l.addLayer(layer);
-            where._configuration.layers[configuration.name] = {
+            where._configuration.layers[configuration.name] = configuration
+            where._layers[configuration.name] = {
                 _l: layer,
                 _configuration: configuration
             };
@@ -594,7 +629,8 @@ if (L != undefined) {
                 configuration.coord || [configuration.lat || configuration.y, configuration.lang || configuration.x], configuration.options || {});
 
             where._l.addLayer(layer);
-            where._configuration.layers[configuration.name] = {
+            where._configuration.layers[configuration.name] = configuration;
+            where._layers[configuration.name] = {
                 _l: layer,
                 _configuration: configuration
             };
@@ -609,8 +645,6 @@ if (L != undefined) {
                 _configuration: configuration
             };
         },
-
-
 
         getBaseLayer: function() {
             return this._activeBaseLayer || this._layers[0]; // FIX THAT
@@ -739,10 +773,16 @@ if (L != undefined) {
         },
 
 
-        loadTilesLayer: function(layerConfig) {
+        _loadTilesLayer: function(configuration, where) {
+            if (!where) {
+                where = this;
+            }
+            if (typeof where === 'string') {
+                where = this._layers[where];
+            }
             //create layer
-            if (layerConfig.tilesUrlTemplate) { //check if there is the tilesUrlTemplate
-                let options = Object.assign({}, layerConfig);
+            if (configuration.tilesUrlTemplate) { //check if there is the tilesUrlTemplate
+                let options = Object.assign({}, configuration.options);
                 if (Array.isArray(options.tileSize)) {
                     options.tileSize = L.point(options.tileSize[0], options.tileSize[1]);
                 }
@@ -750,27 +790,12 @@ if (L != undefined) {
                     options.tileSize = L.point(options.tileSize.x, options.tileSize.y);
                 }
 
-                let layer = L.tileLayer(options.tilesUrlTemplate, options);
-                layer._configuration = layerConfig;
-                this._layers.push(layer);
+                let layer = L.tileLayer(configuration.tilesUrlTemplate, options);
+                wherer._layers[configuration.name] = layer;
 
-                if (options.baseLayer) {
-                    layer.on("add", () => {
-                        this._map.setMaxZoom(layerConfig.maxZoom);
-                        this._activeBaseLayer = layer;
-                        if (layer.options.customKeys) {
-                            layer.unbindTooltip();
-                            layer.bindTooltip(L.tooltip({
-                                direction: 'left'
-                            }));
-                            layer.setTooltipContent(`slice ${layer.options.t}`);
-                            layer.openTooltip([0, 0]);
-                        }
-                    });
-                }
-                if (this._layerControl) {
-                    if (options.baseLayer) {
-                        this._layerControl.addBaseLayer(layer, options.name);
+                if (this._controls.layers) {
+                    if (configuration.baseLayer) {
+                        this._controls.layers.addBaseLayer(layer, configuration.name);
                         if (!this._state.baseLayerOn) {
                             this._map.addLayer(layer);
                             this._state.baseLayerOn = true;
@@ -778,51 +803,18 @@ if (L != undefined) {
                     } else {
                         this._layerControl.addOverlay(layer, options.name);
                     }
-                } else if (!this._options.externalControl) {
-                    this._map.addLayer(layer);
+                } else if (typeof this._options.controls.layers === 'function') {
+                    this._options.controls.layers(layer, configuration, where);
+                } else {
+                    where._l.addLayer(layer);
                 }
-                this._map.setView(options.view || [-100, 100], 0);
+                this.fitWorld();
                 this.fire('load:tileslayer', {
                     layer: layer,
-                    configuration: layerConfig
+                    configuration: configuration
                 });
-            }
-        },
-
-        tUP: function() {
-            if (!this._activeBaseLayer) return;
-            if (!this._activeBaseLayer.options.customKeys) return;
-            if (this._activeBaseLayer.options.t >= 0 && this._activeBaseLayer.options.customKeys.t) {
-                let val = this._activeBaseLayer.options.customKeys.t;
-                let cur = this._activeBaseLayer.options.t;
-                let pos = val.findIndex((e) => {
-                    return (`${e}` === cur);
-                });
-                let next = Math.min(pos + 1, val.length - 1);
-                if (`${val[next]}` === cur) return;
-                this._activeBaseLayer.options.t = `${val[next]}`;
-                this._activeBaseLayer.setTooltipContent(`slice ${val[next]}`);
-                this._activeBaseLayer.redraw();
-            }
-        },
-
-        tDOWN: function() {
-            if (!this._activeBaseLayer) return;
-            if (!this._activeBaseLayer.options.customKeys) return;
-            if (this._activeBaseLayer.options.t >= 0 && this._activeBaseLayer.options.customKeys.t) {
-                let val = this._activeBaseLayer.options.customKeys.t;
-                let cur = this._activeBaseLayer.options.t;
-                let pos = val.findIndex((e) => {
-                    return (`${e}` === cur);
-                });
-                let next = Math.max(pos - 1, 0);
-                if (`${val[next]}` === cur) return;
-                this._activeBaseLayer.options.t = `${val[next]}`;
-                this._activeBaseLayer.setTooltipContent(`slice ${val[next]}`);
-                this._activeBaseLayer.redraw();
             }
         }
-
     });
 
     L.mapBuilder = function(map, options, configuration) {
