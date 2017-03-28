@@ -31,6 +31,7 @@ if (L != undefined) {
         _l: null,
         map: null,
         _indx: 0,
+        _indxName: 0,
         _size: null,
         _configuration: {
             layers: {}
@@ -256,7 +257,7 @@ if (L != undefined) {
 
 
         addLayer: function(configuration, where) {
-            configuration.name = configuration.name || `${configuration.type}_${this._indx+1}`;
+            configuration.name = configuration.name || `${configuration.type}_${this._indx++}`;
             if (!configuration) return;
             if (typeof where === 'string') {
                 where = this._layers[where];
@@ -265,11 +266,19 @@ if (L != undefined) {
                 where = this;
             }
             if ((!where._layers) || (!where._configuration) || (!where._configuration.layers)) {
+                this.fire('error', {
+                    error: 'Destination does not permit adding layer, you can just add a layer to the map, featureGroup, layerGroup and similar'
+                });
                 console.log('Destination does not permit adding layer, you can just add a layer to the map, featureGroup, layerGroup and similar');
                 return;
             }
             if (where._layers[configuration.name]) {
-                console.log('Layer with same name already present');
+                this.fire('error', {
+                    error: 'Layer with same name already present i will try different name'
+                });
+                configuration.name = `${configuration.name}_${this._indx++}`;
+                this.addLayer(configuration, where);
+                console.log('Layer with same name already present i will try different name');
                 return;
             }
             where._configuration.layers[configuration.name] = configuration;
@@ -286,10 +295,13 @@ if (L != undefined) {
             if (!where) {
                 where = this;
             }
-            configuration._id = this._indx++;
             configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
+            configuration._id = `${where._configuration.name}_${configuration.name}`;
             if (where._layers[configuration.name]) {
-                console.log('already a layer with the given name')
+                console.log('already a layer with the given name');
+                this.fire('error', {
+                    error: 'already a layer with the given name'
+                });
                 return;
             }
             let layer;
@@ -366,7 +378,12 @@ if (L != undefined) {
                 where = this;
             }
             if (!where._layers[old]) return;
-            if (where._layers[now]) return;
+            if (where._layers[now]) {
+                this.fire('error', {
+                    error: 'already a layer with the given name'
+                });
+                return;
+            }
             where._layers[old]._configuration.name = now;
             where._layers[now] = where._layers[old];
             delete where._layers[old];
@@ -391,8 +408,18 @@ if (L != undefined) {
             if (!where) {
                 where = this;
             }
-            if (!where._layers) return;
-            if (!where._layers[name]) return;
+            if (!where._layers) {
+                this.fire('error', {
+                    error: 'no layer to delete'
+                });
+                return;
+            }
+            if (!where._layers[name]) {
+                this.fire('error', {
+                    error: 'no layer to delete'
+                });
+                return;
+            }
             where._l.removeLayer(where._layers[name]._l);
             if (this._controls.layers) {
                 this._controls.layers.removeLayer(where._layers[name]._l);
@@ -579,7 +606,6 @@ if (L != undefined) {
         },
 
         _loadPolygon: function(configuration, where) {
-            console.log(configuration.name);
             if (!where) {
                 if (this._layers.drawnItems) {
                     where = this._layers.drawnItems;
@@ -610,7 +636,6 @@ if (L != undefined) {
                 where: where._configuration
             });
 
-            console.log("fire");
 
             return {
                 _l: layer,
