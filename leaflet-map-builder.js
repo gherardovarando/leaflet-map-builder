@@ -269,7 +269,7 @@ if (L != undefined) {
                 this.fire('error', {
                     error: 'Destination does not permit adding layer, you can just add a layer to the map, featureGroup, layerGroup and similar'
                 });
-                console.log('Destination does not permit adding layer, you can just add a layer to the map, featureGroup, layerGroup and similar');
+                //console.log('Destination does not permit adding layer, you can just add a layer to the map, featureGroup, layerGroup and similar');
                 return;
             }
             if (where._layers[configuration.name]) {
@@ -278,7 +278,7 @@ if (L != undefined) {
                 });
                 configuration.name = `${configuration.name}_${this._indx++}`;
                 this.addLayer(configuration, where);
-                console.log('Layer with same name already present i will try different name');
+                //console.log('Layer with same name already present i will try different name');
                 return;
             }
             where._configuration.layers[configuration.name] = configuration;
@@ -298,12 +298,16 @@ if (L != undefined) {
             configuration.name = configuration.name || `${configuration.type}_${this._indx++}`;
             configuration._id = `${where._configuration.name}_${configuration.name}`;
             if (where._layers[configuration.name]) {
-                console.log(`already a loaded layer with the name: ${configuration.name}`);
+                //console.log(`already a loaded layer with the name: ${configuration.name}`);
                 this.fire('error', {
                     error: `already a loaded layer with the name: ${configuration.name}, abort loading, this should not happen`
                 });
                 return;
             }
+            configuration.options = configuration.options || {
+                color: this.getDrawingColor(),
+                fillColor: this.getDrawingColor()
+            };
             let layer;
             switch (configuration.type) {
                 case 'tileLayer':
@@ -359,20 +363,29 @@ if (L != undefined) {
             if (!where) {
                 where = this;
             }
+            if (typeof where === 'string') {
+                where = this._layers[where];
+            }
             if (!where._layers) return;
             if (!where._layers[name]) return;
-
             if (where._layers[name]._l.setStyle) {
                 where._layers[name]._l.setStyle(style);
-                Object.assign(where._layers[name]._configuration.options, style);
+                where._layers[name]._configuration.options = Object.assign(where._layers[name]._configuration.options || {}, style);
+                if (where._layers[name]._layers) {
+                    Object.keys(where._layers[name]._layers).map((k) => {
+                        where._layers[name]._layers[k]._configuration.options = Object.assign(where._layers[name]._layers[k]._configuration.options || {}, style);
+                    });
+                }
             }
         },
 
         renameLayer: function(old, now, where) {
+
             let configuration;
             let layer;
             if (!old) return;
             if (!now) return;
+            if (old == now) return;
             if (typeof where === 'string') {
                 where = this._layers[where];
             }
@@ -821,12 +834,12 @@ if (L != undefined) {
 
                 let options = Object.assign({
                     opacity: 1,
-                    bounds: configuration.bounds || [
+                    bounds: [
                         [-256, 0],
                         [0, 256]
                     ]
-                }, configuration.options || configuration);
-
+                }, configuration);
+                Object.assign(options, configuration.options);
                 let layer = L.imageOverlay(options.imageUrl, options.bounds, options);
                 if (options.baseLayer) {
                     this._configuration.size = this._configuration.size || options.size;
@@ -875,7 +888,8 @@ if (L != undefined) {
             }
             //create layer
             if (configuration.tileUrlTemplate) { //check if there is the tilesUrlTemplate
-                let options = Object.assign({}, configuration.options || configuration);
+                let options = Object.assign({}, configuration);
+                Object.assign(options, configuration.options);
                 if (options.tileSize) {
                     if (Array.isArray(options.tileSize)) {
                         options.tileSize = L.point(options.tileSize[0], options.tileSize[1]);
