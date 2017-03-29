@@ -204,7 +204,12 @@ if (L != undefined) {
                 if (this._options.controls.zoom) {
                     this._addZoomControl();
                 }
-
+                if (this._configuration.maxZoom) {
+                    this.setMaxZoom(this._configuration.maxZoom);
+                }
+                if (this._configuration.minZoom) {
+                    this.setMinZoom(this._configuration.minZoom);
+                }
                 this.fitWorld();
                 this.fire('reload');
             }
@@ -865,7 +870,7 @@ if (L != undefined) {
                     _configuration: configuration
                 };
                 this._configuration.layers[configuration.name] = configuration;
-                this.fire('laod:imagelayer', {
+                this.fire('load:imagelayer', {
                     layer: layer,
                     configuration: configuration
                 });
