@@ -295,12 +295,12 @@ if (L != undefined) {
             if (!where) {
                 where = this;
             }
-            configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
+            configuration.name = configuration.name || `${configuration.type}_${this._indx++}`;
             configuration._id = `${where._configuration.name}_${configuration.name}`;
             if (where._layers[configuration.name]) {
-                console.log('already a layer with the given name');
+                console.log(`already a loaded layer with the name: ${configuration.name}`);
                 this.fire('error', {
-                    error: 'already a layer with the given name'
+                    error: `already a loaded layer with the name: ${configuration.name}, abort loading, this should not happen`
                 });
                 return;
             }
@@ -369,6 +369,8 @@ if (L != undefined) {
         },
 
         renameLayer: function(old, now, where) {
+            let configuration;
+            let layer;
             if (!old) return;
             if (!now) return;
             if (typeof where === 'string') {
@@ -377,23 +379,32 @@ if (L != undefined) {
             if (!where) {
                 where = this;
             }
-            if (!where._layers[old]) return;
             if (where._layers[now]) {
                 this.fire('error', {
-                    error: 'already a layer with the given name'
+                    error: 'already a layer with the new name'
                 });
                 return;
             }
-            where._layers[old]._configuration.name = now;
-            where._layers[now] = where._layers[old];
-            delete where._layers[old];
-            where._configuration.layers[now] = where._configuration.layers[old];
-            where._configuration.layers[now].name = now;
-            delete where._configuration.layers[old];
-            where._layers[now]._l._name = now;
+            if (where._layers[old]) {
+                where._layers[old]._configuration.name = now;
+                where._layers[now] = where._layers[old];
+                configuration = where._layers[now]._configuration;
+                delete where._layers[old];
+                if (where._layers[now]._l instanceof L.Layer) {
+                    where._layers[now]._l._name = now;
+                    layer = where._layers[now]._l;
+                }
+            }
+            if (where._configuration.layers[old]) {
+                where._configuration.layers[now] = where._configuration.layers[old];
+                where._configuration.layers[now].name = now;
+                delete where._configuration.layers[old];
+                configuration = where._configuration.layers[now];
+            }
             this.fire('rename:layer', {
                 name: now,
-                layer: where._layers[now]
+                layer: layer,
+                configuration: configuration
             });
         },
 
