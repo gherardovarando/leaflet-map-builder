@@ -359,7 +359,7 @@ if (L != undefined) {
                 if (layer._configuration.popup) {
                     layer._l.bindPopup(layer._configuration.popup.content || layer._configuration.popup, layer._configuration.popup.options);
                 } else if (this._options.popup[layer._configuration.type]) {
-                    layer._l.bindPopup(layer._configuration.name);
+                    layer._l.bindPopup(`${layer._configuration.name}  <p>${layer._configuration.details}</p>`);
                 }
             }
         },
@@ -726,12 +726,16 @@ if (L != undefined) {
                 opt.icon = L.icon(opt.icon.options);
             }
 
+
             let layer = L.marker(configuration.latlng ||
                 configuration.latLng ||
                 configuration.point ||
                 configuration.coordinate ||
                 configuration.coord || [configuration.lat || configuration.y, configuration.lang || configuration.x], opt);
 
+            if (this._options.dev) {
+                configuration.details = `Lat:${layer.getLatLng().lat} Lng:${layer.getLatLng().lng}`;
+            }
             where._l.addLayer(layer);
             where._configuration.layers[configuration.name] = configuration;
             where._layers[configuration.name] = {
