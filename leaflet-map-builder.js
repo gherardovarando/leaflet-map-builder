@@ -28,10 +28,9 @@ if (L != undefined) {
      * MapBuilder Class
      */
     L.MapBuilder = L.Evented.extend({
-        _l: null,
         map: null,
         _indx: 0,
-        _indxName: 0,
+        _nameIndx: 0,
         _size: null,
         _configuration: {
             layers: {}
@@ -74,10 +73,8 @@ if (L != undefined) {
         initialize: function(map, options, configuration) {
             this.setMap(map);
             this.setOptions(options);
-            this.setConfiguration(configuration || {
-                type: 'map',
-                layers: {}
-            });
+
+            this.setConfiguration(configuration);
 
         },
 
@@ -87,8 +84,7 @@ if (L != undefined) {
          */
         setMap: function(map) {
             if (map instanceof L.Map) {
-                this._l = map;
-                this.map = this._l;
+                this.map = map;
                 this.fire("map-added", map);
             } else {
                 throw {
@@ -120,9 +116,10 @@ if (L != undefined) {
         },
 
         setConfiguration: function(configuration) {
+            if (!configuration) return;
             this._configuration = this._parse(configuration);
             this.fire('set:configuration', {
-                configuration: configuration
+                configuration: this._configuration
             });
             this.reload();
         },
@@ -141,23 +138,26 @@ if (L != undefined) {
 
         //clean the map
         clear: function() {
-            if (this._l) {
-                this._l.eachLayer((layer) => {
-                    this._l.removeLayer(layer);
+            if (this.map) {
+                this.map.eachLayer((layer) => {
+                    this.map.removeLayer(layer);
                 });
                 if (L.Control.Draw && this._controls.draw instanceof L.Control.Draw) {
-                    this._l.removeControl(this._controls.draw);
+                    this.map.removeControl(this._controls.draw);
                 }
 
                 if (this._controls.layers instanceof L.Control.Layers) {
-                    this._l.removeControl(this._controls.layers);
+                    this.map.removeControl(this._controls.layers);
                 }
                 if (this._controls.zoom instanceof L.Control.Zoom) {
-                    this._l.removeControl(this._controls.zoom);
+                    this.map.removeControl(this._controls.zoom);
                 }
                 this._removeMapListener();
-                //this._l.off();
+                //this.map.off();
             }
+            this._drawnItems = null;
+            this._indx = 0;
+            this._nameIndx = 0;
             this._size = null;
             this._eventsmap = [];
             this._layers = {};
@@ -170,15 +170,15 @@ if (L != undefined) {
         },
 
         _removeMapListener: function() {
-            if (this._l) {
+            if (this.map) {
                 this._eventsmap.map((ev) => {
-                    this._l.off(ev);
+                    this.map.off(ev);
                 });
             }
         },
 
         reload: function() {
-            if (!this._l) {
+            if (!this.map) {
                 return;
             } else {
                 this.clear();
@@ -190,11 +190,11 @@ if (L != undefined) {
                 if (this._configuration.layers) {
                     if (this._configuration.layers instanceof Array) {
                         this._configuration.layers.map((layer, key) => {
-                            this._loadLayer(layer, key);
+                            this.loadLayer(layer);
                         });
                     } else { //we assume is an object
                         Object.keys(this._configuration.layers).map((key) => {
-                            this._loadLayer(this._configuration.layers[key], key);
+                            this.loadLayer(this._configuration.layers[key]);
                         });
                     }
 
@@ -218,26 +218,25 @@ if (L != undefined) {
         },
 
         center: function() {
-            this._map.setView([0, 0], 0);
+            this.map.setView([0, 0], 0);
         },
 
         onMap: function(ev, cl) {
             this._eventsmap.push(ev);
-            this._l.on(ev, cl);
+            this.map.on(ev, cl);
         },
 
         offMap: function(ev) {
-            this._l.off(ev);
+            this.map.off(ev);
         },
 
         fitWorld() {
-            this._l.fitWorld();
+            this.map.fitWorld();
         },
 
         getSize() {
             return this._size;
         },
-
 
         getDrawingColor: function() {
             if (typeof this._drawingColor === 'string') return this._drawingColor;
@@ -249,78 +248,31 @@ if (L != undefined) {
         },
 
         setMaxZoom: function(zoom) {
-            this._l.setMaxZoom(zoom);
+            this.map.setMaxZoom(zoom);
             this.fire('set:maxZoom', {
                 maxZoom: zoom
             });
         },
 
         setMinZoom: function(zoom) {
-            this._l.setMinZoom(zoom);
+            this.map.setMinZoom(zoom);
             this.fire('set:minZoom', {
                 minZoom: zoom
             });
         },
 
-        _getConfiguration(id, parent) {
-            if (id) {
-                if (parent) {
-                    return parent.layers[id];
-                } else {
-                    return this._configuration.layers[id];
-                }
-            } else {
-                return this._configuration;
-            }
-        },
-
-
-
-        addLayer: function(configuration, id, where) {
-            id = id || configuration.type;
-            let parent = this._getConfiguration(where);
-            if (parent.type === 'featureGroup' || parent.type === 'layerGroup' || parent.type === 'map') {
-                parent.layers = parent.layers || {};
-                if (parent.layers[key]) {
-                    this.fire('error', {
-                        error: 'Layer with same id already present i will try different id'
-                    });
-                    this.addLayer(configuration, `${id}_${this.indx++}`, where);
-                    return;
-                }
-                where.layers[id] = configuration;
-                return this._loadLayer(id);
-            }
-
-        },
-
-        _updateLayer(id, configuration, where) {
-            let parent = this._getConfiguration(where);
-            if (parent && parent.layers && parent.layers[id]) {
-                Object.assign(parent.layers[id], configuration);
-                this._loadLayer(id);
-                this.fire('update:layer', {
-                    configuration: parent.layers[id],
-                    id: id,
-                    where: where
-                })
-            }
-        },
-
-
-
-        _loadLayer: function(id, where) {
-            if (!id) return;
-            let parent = this._getConfiguration(where);
-            let configuration = this._getConfiguration(id, where);
+        loadLayer: function(configuration, where) {
             if (!configuration) return;
-            configuration.name = configuration.name || `${configuration.type}_${key}`;
-            configuration._id = id;
+            configuration.name = configuration.name || `${configuration.type}_${this._nameIndx++}`;
+            configuration._id = this._indx++;
             configuration.options = configuration.options || {
                 color: this.getDrawingColor(),
                 fillColor: this.getDrawingColor()
             };
             let layer;
+            if (!where || (!where instanceof L.LayerGroup)) {
+                where = this.map;
+            }
             switch (configuration.type) {
                 case 'tileLayer':
                     layer = this._loadTileLayer(configuration, where);
@@ -357,7 +309,7 @@ if (L != undefined) {
             }
 
             if (layer) {
-                this._layers
+                layer._id = configuration._id;
                 if (configuration.tooltip) {
                     layer.bindTooltip(configuration.tooltip.content || configuration.tooltip, configuration.tooltip.options);
                 } else if (this._options.tooltip[configuration.type]) {
@@ -365,34 +317,29 @@ if (L != undefined) {
                 }
                 if (configuration.popup) {
                     layer.bindPopup(configuration.popup.content || configuration.popup, configuration.popup.options);
-                } else if (this._options.popup[layer._configuration.type]) {
-                    layer.bindPopup(`${layer._configuration.name}  <p>${layer._configuration.details}</p>`);
+                } else if (this._options.popup[configuration.type]) {
+                    layer.bindPopup(`${configuration.name}  <p>${configuration.details}</p>`);
                 }
             }
             return layer;
         },
 
-        removeLayer: function(id, where) {
-            let parent = this._getConfiguration(where);
-            let configuration = this._getConfiguration(id, where);
-            if (!configuration) return;
-            delete where.layers[id];
-            this.fire('remove:layer', {
-                name: name,
-                configuration: configuration
-            });
-        },
-
-
         _addDrawnItems: function() {
-            this._drawnItems = this.addLayer({
+            this._drawnItems = this.loadLayer({
                 name: 'drawnItems',
                 role: 'drawnItems',
                 type: 'featureGroup',
                 layers: {}
             });
+            this.fire('add:drawnitems', {
+                configuration: {
+                    name: 'drawnItems',
+                    role: 'drawnItems',
+                    type: 'featureGroup',
+                    layers: {}
+                }
+            })
         },
-
 
         _addDrawControl: function() {
             if (!L.Control.Draw) return;
@@ -425,49 +372,8 @@ if (L != undefined) {
             }
             let drawControl = new L.Control.Draw(options);
             this._controls.draw = drawControl;
-            this._l.addControl(drawControl);
+            this.map.addControl(drawControl);
 
-            this.onMap('draw:created', (e) => {
-                let type = e.layerType,
-                    layer = e.layer;
-                let config = {
-                    type: type,
-                    options: layer.options
-                }
-                if (layer.getLatLngs) {
-                    config.latlngs = layer.getLatLngs();
-                } else if (layer.getLatLng) {
-                    config.latlng = layer.getLatLng();
-                } else if (layer.getRadius) {
-                    config.radius = layer.getRadius();
-                }
-                this.addLayer(config, this._layers.drawnItems);
-            });
-
-            // when items are removed
-            this.onMap('draw:deleted', (e) => {
-                var layers = e.layers;
-                layers.eachLayer((layer) => {
-                    this.removeLayer(layer._name, this._layers.drawnItems);
-                });
-            });
-
-            this.onMap('draw:edited', (e) => {
-                let layers = e.layers;
-                layers.eachLayer((layer) => {
-                    let config = {};
-                    if (layer.getLatLngs) {
-                        config.latlngs = layer.getLatLngs();
-                    } else if (layer.getLatLng) {
-                        config.latlng = layer.getLatLng();
-                    } else if (layer.getRadius) {
-                        config.radius = layer.getRadius();
-                    }
-                    this._updateLayer(layer._name, config, this._layers.drawnItems)
-                });
-            });
-
-            this.onMap('draw:drawstart', () => {});
 
         },
 
@@ -475,7 +381,7 @@ if (L != undefined) {
             if (typeof this._options.controls.layers === 'function') return; //external controls
             let options = Object.assign({}, this._options.controls.layers);
             this._controls.layers = L.control.layers(null, null, options);
-            this._l.addControl(this._controls.layers);
+            this.map.addControl(this._controls.layers);
             this.fire('add:control', {
                 type: 'layers',
                 control: this._controls.layers
@@ -485,7 +391,7 @@ if (L != undefined) {
         _addZoomControl: function() {
             let options = Object.assign({}, this._options.controls.zoom);
             this._controls.zoom = L.control.zoom(options);
-            this._l.addControl(this._controls.zoom);
+            this.map.addControl(this._controls.zoom);
             this.fire('add:control', {
                 type: 'zoom',
                 control: this._controls.zoom
@@ -495,7 +401,7 @@ if (L != undefined) {
         _addAttributionControl: function() {
             let options = Object.assign({}, this._options.controls.attribution);
             this._controls.attribution = L.control.attribution(options);
-            this._l.addControl(this._controls.attribution);
+            this.map.addControl(this._controls.attribution);
             this.fire('add:control', {
                 type: 'atttribution',
                 control: this._controls.attribution
@@ -506,16 +412,16 @@ if (L != undefined) {
             configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
             configuration.layers = configuration.layers || {};
             let layer = L.featureGroup();
-            this._l.addLayer(layer);
+            this.map.addLayer(layer);
             Object.keys(configuration.layers).map((key) => {
-                this._loadLayer(key, configuration._id);
+                this.loadLayer(configuration.layers[key], layer);
             });
             if (this._controls.layers) {
                 this._controls.layers.addOverlay(layer, configuration.name);
-            } else if (typeof this._controls.layers === 'function') {
-                this._controls.layers(layer, configuration, this);
+            } else if (typeof this._options.controls.layers === 'function') {
+                this._options.controls.layers(layer, configuration, this.map);
             } else {
-                this._l.addLayer(layer);
+                this.map.addLayer(layer);
             }
             if (configuration.role === 'drawnItems') {
                 this._drawnItems = layer;
@@ -525,23 +431,22 @@ if (L != undefined) {
                 configuration: configuration
             });
             return layer;
-
         },
 
         _loadLayerGroup: function(configuration) {
             configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
             configuration.layers = configuration.layers || {};
             let layer = L.featureGroup();
-            this._l.addLayer(layer);
+            this.map.addLayer(layer);
             Object.keys(configuration.layers).map((key) => {
-                this._loadLayer(configuration.layers[key], this._layers[configuration.name]);
+                this.loadLayer(configuration.layers[key], layer);
             });
             if (this._controls.layers) {
                 this._controls.layers.addOverlay(layer, configuration.name);
             } else if (typeof this._controls.layers === 'function') {
-                this._controls.layers(layer, configuration, this);
+                this._controls.layers(layer, configuration, this.map);
             } else {
-                this._l.addLayer(layer);
+                this.map.addLayer(layer);
             }
             this.fire(`load:layergroup`, {
                 layer: layer,
@@ -552,10 +457,10 @@ if (L != undefined) {
 
         _loadPolygon: function(configuration, where) {
             if (!where) {
-                if (this._layers.drawnItems) {
-                    where = this._layers.drawnItems;
+                if (this._drawnItems) {
+                    where = this._drawnItems;
                 } else {
-                    where = this;
+                    where = this.map;
                 }
             }
             if (typeof where == 'string') {
@@ -568,21 +473,21 @@ if (L != undefined) {
                 configuration.coordinates ||
                 configuration.coords || [configuration.lats || configuration.y, configuration.langs || configuration.x], configuration.options || {});
 
-            where._l.addLayer(layer);
+            where.addLayer(layer);
             this.fire('load:polygon', {
                 layer: layer,
                 configuration: configuration,
-                where: where._configuration._id
+                where: where
             });
             return layer;
         },
 
         _loadRectangle: function(configuration, where) {
             if (!where) {
-                if (this._layers.drawnItems) {
-                    where = this._layers.drawnItems;
+                if (this._drawnItems) {
+                    where = this._drawnItems;
                 } else {
-                    where = this;
+                    where = this.map;
                 }
             }
             let layer = L.rectangle(configuration.bounds || configuration.latlngs ||
@@ -592,24 +497,21 @@ if (L != undefined) {
                 configuration.coordinates ||
                 configuration.coords || [configuration.lats || configuration.y, configuration.langs || configuration.x], configuration.options || {});
 
-            where._l.addLayer(layer);
+            where.addLayer(layer);
             this.fire('load:rectangle', {
                 layer: layer,
                 configuration: configuration,
-                where: where._configuration._id
+                where: where
             });
-
             return layer;
-
-
         },
 
         _loadMarker: function(configuration, where) {
             if (!where) {
-                if (this._layers.drawnItems) {
-                    where = this._layers.drawnItems;
+                if (this._drawnItems) {
+                    where = this._drawnItems;
                 } else {
-                    where = this;
+                    where = this.map;
                 }
             }
             let opt = Object.assign({
@@ -633,22 +535,17 @@ if (L != undefined) {
             if (this._options.dev) {
                 configuration.details = `Lat:${layer.getLatLng().lat} Lng:${layer.getLatLng().lng}`;
             }
-            where._l.addLayer(layer);
+            where.addLayer(layer);
             this.fire('load:marker', {
                 layer: layer,
                 configuration: configuration,
-                where: where._configuration._id
+                where: where
             });
 
             return layer;
         },
 
-        getBaseLayer: function() {
-            return this._activeBaseLayer || this._layers[0]; // FIX THAT
-        },
-
         _loadGuideLayer: function(configuration) {
-            if (!this.getBaseLayer()) return;
             let guideLayer = L.featureGroup();
             guideLayer.on("add", () => {
                 if (this._controls.draw) {
@@ -708,9 +605,9 @@ if (L != undefined) {
             if (this._controls.layers) {
                 this._controls.layers.addOverlay(guideLayer, configuration.name);
             } else if (typeof this._controls.layers === 'function') {
-                this._controls.layers(guideLayer, configuration, this);
+                this._controls.layers(guideLayer, configuration, this.map);
             } else {
-                this._l.addLayer(guideLayer);
+                this.map.addLayer(guideLayer);
             }
 
             this.fire('load:guidelayer', {
@@ -733,23 +630,16 @@ if (L != undefined) {
                 }, configuration);
                 Object.assign(options, configuration.options);
                 let layer = L.imageOverlay(options.imageUrl, options.bounds, options);
-                if (options.baseLayer) {
-                    this._configuration.size = this._configuration.size || options.size;
-                    this._activeBaseLayer = this._activeBaseLayer || layer;
-                }
-                if (options.baseLayer) {
-                    layer.on("add", () => {
-                        this._map.setMaxZoom(options.maxZoom);
-                        this._map.setMinZoom(options.minZoom);
-                        this._activeBaseLayer = layer;
-                    });
-                }
                 if (this._controls.layers) {
-                    this._controls.layers.addOverlay(layer, configuration.name);
-                } else if (typeof this._controls.layers === 'function') {
-                    this._controls.layers(layer, configuration, this);
+                    if (configuration.baseLayer) {
+                        this._controls.layers.addBaseLayer(layer, configuration.name);
+                    } else {
+                        this._controls.layers.addOverlay(layer, configuration.name);
+                    }
+                } else if (typeof this._options.controls.layers === 'function') {
+                    this._options.controls.layers(layer, configuration, this.map);
                 } else {
-                    this._l.addLayer(layer);
+                    this.map.addLayer(layer);
                 }
                 this.fitWorld();
                 this.fire('load:imagelayer', {
@@ -763,13 +653,7 @@ if (L != undefined) {
         },
 
 
-        _loadTileLayer: function(configuration, where) {
-            if (!where) {
-                where = this;
-            }
-            if (typeof where === 'string') {
-                where = this._layers[where];
-            }
+        _loadTileLayer: function(configuration) {
             //create layer
             if (configuration.tileUrlTemplate) { //check if there is the tilesUrlTemplate
                 let options = Object.assign({}, configuration);
@@ -796,17 +680,13 @@ if (L != undefined) {
                 if (this._controls.layers) {
                     if (configuration.baseLayer) {
                         this._controls.layers.addBaseLayer(layer, configuration.name);
-                        if (!this._state.baseLayerOn) {
-                            this._l.addLayer(layer);
-                            this._state.baseLayerOn = true;
-                        }
                     } else {
                         this._controls.layers.addOverlay(layer, options.name);
                     }
                 } else if (typeof this._options.controls.layers === 'function') {
-                    this._options.controls.layers(layer, configuration, where);
+                    this._options.controls.layers(layer, configuration, this.map);
                 } else {
-                    where._l.addLayer(layer);
+                    this.map.addLayer(layer);
                 }
                 this.fitWorld();
                 this.fire('load:tilelayer', {
