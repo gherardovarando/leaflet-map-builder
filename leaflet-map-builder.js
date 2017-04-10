@@ -184,6 +184,9 @@ if (L != undefined) {
                 if (this._options.controls.layers) {
                     this._addLayersControl();
                 }
+                if (this._options.controls.attribution) {
+                    this._addAttributionControl();
+                }
                 this._indx = 0;
                 //load all the layers
                 if (this._configuration.layers) {
@@ -430,7 +433,7 @@ if (L != undefined) {
             this._controls.attribution = L.control.attribution(options);
             this.map.addControl(this._controls.attribution);
             this.fire('add:control', {
-                type: 'atttribution',
+                type: 'attribution',
                 control: this._controls.attribution
             });
         },
