@@ -26,34 +26,88 @@
     });
     var builder = L.mapBuilder(map, {
         controls: {
-            zoom: {
-                position: 'top-left'
-            },
+            zoom: true,
             layers: true
+        },
+        tooltip: {
+            marker: true
+        },
+        popup: {
+            polygon: true
         }
     }, {
+        type: 'map',
         layers: {
             a: {
+                name: 'OpenStreetMap',
                 type: 'tileLayer',
-                tileUrlTemplate: 'http://a.tile.openstreetmap.org/${z}/${x}/${y}.png',
-                tileSize: 256
+                tileUrlTemplate: 'http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                baseLayer: true,
+                options: {
+                    tileSize: 256,
+                    noWrap: true,
+                    attribution: 'openstreetmap'
+                }
             },
             b: {
-              name: 'Image layer from tile 0,0,0 of Stamen Watercolor',
-              type: 'imageLayer',
-              imageUrl: 'http://c.tile.stamen.com/watercolor/0/0/0.jpg',
-              options: {
-                attribution: 'stamen'
-              }
+                name: 'Image layer from tile 0,0,0 of Stamen Watercolor',
+                type: 'imageLayer',
+                imageUrl: 'http://c.tile.stamen.com/watercolor/0/0/0.jpg',
+                options: {
+                    attribution: 'stamen',
+                    bounds: [
+                        [360, 180],
+                        [-360, -180]
+                    ],
+                    opacity: 0.4
+                }
             },
             c: {
-              type: 'polygon',
-              latlngs: [
-                [0,0],
-                [10,34],
-                [56,78],
-                [0,0]
-              ]
+                type: 'polygon',
+                latlngs: [
+                    [0, 0],
+                    [10, 34],
+                    [56, 78],
+                    [0, 0]
+                ],
+                details:'',
+                name: 'random polygon',
+                options: {
+                    color: "green",
+                    fillColor: "white",
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }
+            },
+            e: {
+                name: "bottom-left",
+                type: 'marker',
+                details: 'lat: -360, lng: -180',
+                latlng: [-360, -180]
+            },
+            f: {
+                name: "top-right",
+                type: 'marker',
+                details: 'lat: 360, lng: 180',
+                latlng: [360, 180]
+            },
+            group: {
+                name: 'some markers',
+                type: 'layerGroup',
+                layers: {
+                    '1': {
+                        type: 'marker',
+                        latlng: [10, 7]
+                    },
+                    '2': {
+                        type: 'marker',
+                        latlng: [56, 89]
+                    },
+                    '3': {
+                        type: 'marker',
+                        latlng: [-45, 5]
+                    }
+                }
             }
         }
     });
