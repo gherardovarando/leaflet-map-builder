@@ -16,16 +16,36 @@
 </head>
 
 <body>
-    <div id="map" style="height:800px; width: 100%"></div>
+    <div id="map" style="height:600px; width: 100%"></div>
 </body>
 
 
 <script>
-    var map = L.map('map').setView([51.505, -0.09], 13);
+    var map = L.map('map', {
+        zoomControl: false\\ the builder will add it
+    });
     var builder = L.mapBuilder(map, {
         controls: {
-            zoom: true,
+            zoom: {
+                position: 'top-left'
+            },
             layers: true
+        }
+    }, {
+        layers: {
+            a: {
+                type: 'tileLayer',
+                tileUrlTemplate: 'http://a.tile.openstreetmap.org/${z}/${x}/${y}.png',
+                tileSize: 256
+            },
+            b: {
+              name: 'Image layer from tile 0,0,0 of Stamen Watercolor'
+              type: 'imageLayer',
+              imageUrl: 'http://c.tile.stamen.com/watercolor/0/0/0.jpg'.
+              options: {
+                attribution: 'stamen'
+              }
+            }
         }
     });
 </script>
