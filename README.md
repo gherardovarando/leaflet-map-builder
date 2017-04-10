@@ -3,7 +3,7 @@
 
 #### demo at https://gherardovarando.github.io/leaflet-map-builder/
 
-leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSOn format.
+leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format.
 leaflet-map-builder can create:
 -  tileLayer
 -  imageLayer
@@ -12,8 +12,8 @@ leaflet-map-builder can create:
 -  polygon
 -  rectangle
 -  circle
-- polyline
-- marker
+-  polyline
+-  marker
 
 It also supports the following controls:
 
@@ -31,11 +31,11 @@ The map configuration object must be as follow:
 
 ```
 configuration = {
-  name : 'readable map name', \\ optional
+  name : 'readable map name', // optional
   authors : 'XXX <xxx@aaa.bbb>'
   layers : {
-    l1 : { \\the keys of the layer object do not affects the map
-      name: 'layer 1', \\optional
+    l1 : { //the keys of the layer object do not affects the map
+      name: 'layer 1', //optional
       type: 'tileLayer',
       tileUrlTemplate: 'url template',
       tileSize: 256,
@@ -47,16 +47,24 @@ configuration = {
        tileUrlTemplate: 'url template',
        tileSize: 512,
        baseLayer: false
+    },
+    image: {
+      name: 'image name',
+      type: 'imageLayer',
+      imageUrl: 'url to image',
+      bounds: [[0,10],[-10,8]],
+      baseLayer: false
     }
-    \\ ... others layers
+    // ... others layers
 
   }
   // others fields will be ignored by leaflet-map-builder and can be used to store others informations
   data = {
-  \\  ...
+  //  ...
   }
 }
 ```
+
 
 #### Creation
 
