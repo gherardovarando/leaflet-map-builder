@@ -22,12 +22,16 @@
 
 <script>
     var map = L.map('map', {
-        zoomControl: false
+        zoomControl: false,
+        attributionControl: false
     });
     var builder = L.mapBuilder(map, {
         controls: {
             zoom: true,
-            layers: true
+            layers: true,
+            attribution: {
+                prefix: "<a href= 'https://github.com/gherardovarando/leaflet-map-builder'> leaflet-map-builder</a>"
+            }
         },
         tooltip: {
             marker: true
@@ -70,7 +74,7 @@
                     [56, 78],
                     [0, 0]
                 ],
-                details:'',
+                details: '',
                 name: 'random polygon',
                 options: {
                     color: "green",
