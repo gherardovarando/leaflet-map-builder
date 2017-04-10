@@ -548,7 +548,7 @@ if (L != undefined) {
                     where = this.map;
                 }
             }
-            let layer = L.circle(configuration.latlng || configuration.center, configuration.radius, configuration.options || {});
+            let layer = L.circle(configuration.latlng || configuration.center, configuration.options || {});
 
             where.addLayer(layer);
             this.fire('load:circle', {

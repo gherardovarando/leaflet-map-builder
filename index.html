@@ -52,7 +52,6 @@ var configuration = {
             options: {
                 tileSize: 256,
                 maxZoom: 18,
-                noWrap: true,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
             }
         },
@@ -139,7 +138,7 @@ var configuration = {
             }
         },
         featgr: {
-            name: 'featureGroup with some polygons',
+            name: 'some shapes',
             type: 'featureGroup',
             layers: {
                 1: {
@@ -159,7 +158,20 @@ var configuration = {
                         [88, 140],
                         [60, 110]
                     ]
-                }
+                },
+                circ: {
+                        name:"circle",
+                        type: "circle",
+                        latlng: [0,0],
+                        options: {"radius": 200000}
+                },
+                circ2: {
+                        name:"circle",
+                        type: "circle",
+                        latlng: [-20,80],
+                        options: {"radius": 3000000}
+                },
+
             }
         }
     }
@@ -181,7 +193,10 @@ var configuration = {
             }
         },
         tooltip: {
-            marker: true
+            marker: true,
+            polyline: true,
+            polygon: true,
+            circle: true
         },
         popup: {
             polygon: true
