@@ -16,12 +16,18 @@
 </head>
 
 <body>
-    <div id="map" style="height:200px; width: 100%"></div>
+    <div id="map" style="height:100%; width: 100%"></div>
 </body>
 
 
 <script>
     var map = L.map('map').setView([51.505, -0.09], 13);
+    var builder = L.mapBuilder(map, {
+        controls: {
+            zoom: true,
+            layers: true
+        }
+    });
 </script>
 
 
