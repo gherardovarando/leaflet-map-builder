@@ -19,9 +19,6 @@
  */
 'use strict';
 
-
-const leafelt = require('leaflet');
-
 if (L != undefined) {
 
     /**
@@ -245,6 +242,34 @@ if (L != undefined) {
 
         setDrawingColor: function(color) {
             if (typeof color === 'string') this._drawingColor = color;
+            if (this._controls.draw) {
+                this._controls.draw.setDrawingOptions({
+                    polygon: {
+                        shapeOptions: {
+                            color: color,
+                            fillColor: color
+                        }
+                    },
+                    rectangle: {
+                        shapeOptions: {
+                            color: color,
+                            fillColor: color
+                        }
+                    },
+                    circle: {
+                        shapeOptions: {
+                            color: color,
+                            fillColor: color
+                        }
+                    },
+                    polyline: {
+                        shapeOptions: {
+                            color: color,
+                            fillColor: color
+                        }
+                    }
+                });
+            }
         },
 
         setMaxZoom: function(zoom) {
