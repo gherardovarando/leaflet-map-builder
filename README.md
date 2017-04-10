@@ -1,7 +1,7 @@
 # Leaflet Map Builder
 #### by  gherardo.varando <gherardo.varando@gmail.com>
 
-leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSOn format.
+leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format.
 leaflet-map-builder can create:
 -  tileLayer
 -  imageLayer
@@ -19,6 +19,10 @@ It also supports the following controls:
 - zoomControl
 - attributionControl
 - drawControl (via Leafelt.draw)
+
+### Examples
+
+<a href='examples/simple.html'> simple </a>
 
 
 ### API
