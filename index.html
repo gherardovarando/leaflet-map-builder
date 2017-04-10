@@ -22,7 +22,7 @@
 
 <script>
     var map = L.map('map', {
-        zoomControl: false\\ the builder will add it
+        zoomControl: false
     });
     var builder = L.mapBuilder(map, {
         controls: {
@@ -45,6 +45,15 @@
               options: {
                 attribution: 'stamen'
               }
+            },
+            c: {
+              type: 'polygon',
+              latlngs: [
+                [0,0],
+                [10,34],
+                [56,78],
+                [0,0]
+              ]
             }
         }
     });
