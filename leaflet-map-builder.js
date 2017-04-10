@@ -44,7 +44,8 @@ if (L != undefined) {
             controls: {
                 draw: false, // logical, options of configuration
                 zoom: false, // logical, options of configuration
-                layers: false // logical, options of configuration or function for external control
+                layers: false, // logical, options of configuration or function for external control
+                attribution: false
             },
             tooltip: {
                 polygon: false,
@@ -149,6 +150,9 @@ if (L != undefined) {
                 if (this._controls.zoom instanceof L.Control.Zoom) {
                     this.map.removeControl(this._controls.zoom);
                 }
+                if (this._controls.attribution instanceof L.Control.Attribution) {
+                    this.map.removeControl(this._controls.attribution);
+                }
                 this._removeMapListener();
                 //this.map.off();
             }
@@ -159,9 +163,7 @@ if (L != undefined) {
             this._eventsmap = [];
             this._layers = {};
             this._controls = {};
-            this._state = {
-                baseLayerOn: false
-            }
+            this._state.baseLayerOn = false;
             this._activeBaseLayer = null;
             this.fire('clear');
         },
@@ -657,6 +659,10 @@ if (L != undefined) {
                 let layer = L.imageOverlay(options.imageUrl, options.bounds, options);
                 if (this._controls.layers) {
                     if (configuration.baseLayer) {
+                        if (!this._state.baseLayerOn) {
+                            this.map.addLayer(layer);
+                            this._state.baseLayerOn = true;
+                        }
                         this._controls.layers.addBaseLayer(layer, configuration.name);
                     } else {
                         this._controls.layers.addOverlay(layer, configuration.name);
@@ -704,6 +710,10 @@ if (L != undefined) {
 
                 if (this._controls.layers) {
                     if (configuration.baseLayer) {
+                        if (!this._state.baseLayerOn) {
+                            this.map.addLayer(layer);
+                            this._state.baseLayerOn = true;
+                        }
                         this._controls.layers.addBaseLayer(layer, configuration.name);
                     } else {
                         this._controls.layers.addOverlay(layer, options.name);

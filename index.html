@@ -42,6 +42,18 @@
     }, {
         type: 'map',
         layers: {
+            1: {
+                name: 'cartoDb-base',
+                type: 'tileLayer',
+                tileUrlTemplate: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
+                baseLayer: true,
+                options: {
+                    tileSize: 256,
+                    maxZoom: 18,
+                    noWrap: true,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
+                }
+            },
             a: {
                 name: 'OpenStreetMap',
                 type: 'tileLayer',
