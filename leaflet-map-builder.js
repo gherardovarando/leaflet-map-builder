@@ -316,6 +316,9 @@ if (L != undefined) {
                 case 'circle':
                     layer = this._loadCircle(configuration, where);
                     break;
+                case 'polyline':
+                    layer = this._loadPolyline(configuration, where);
+                    break;
                 case 'marker':
                     layer = this._loadMarker(configuration, where);
                     break;
@@ -529,6 +532,44 @@ if (L != undefined) {
 
             where.addLayer(layer);
             this.fire('load:rectangle', {
+                layer: layer,
+                configuration: configuration,
+                where: where
+            });
+            return layer;
+        },
+
+
+        _loadCircle: function(configuration, where) {
+            if (!where) {
+                if (this._drawnItems) {
+                    where = this._drawnItems;
+                } else {
+                    where = this.map;
+                }
+            }
+            let layer = L.circle(configuration.latlng || configuration.center, configuration.radius, configuration.options || {});
+
+            where.addLayer(layer);
+            this.fire('load:circle', {
+                layer: layer,
+                configuration: configuration,
+                where: where
+            });
+            return layer;
+        },
+
+        _loadPolyline: function(configuration, where) {
+            if (!where) {
+                if (this._drawnItems) {
+                    where = this._drawnItems;
+                } else {
+                    where = this.map;
+                }
+            }
+            let layer = L.polyline(configuration.latlngs, configuration.options || {});
+            where.addLayer(layer);
+            this.fire('load:circle', {
                 layer: layer,
                 configuration: configuration,
                 where: where
