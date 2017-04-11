@@ -1,7 +1,7 @@
 {
     "name": "leaflet-map-builder",
     "version": "0.0.1",
-    "description": "leaflet map builder from configuration file (json)",
+    "description": "leaflet map builder from configuration object",
     "main": "leaflet-map-builder.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"

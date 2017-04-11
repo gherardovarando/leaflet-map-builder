@@ -328,9 +328,12 @@ if (L != undefined) {
                 case 'guideLayer':
                     layer = this._loadGuideLayer(configuration, where);
                     break;
-                case 'imageLayer':
-                    layer = this._loadImageLayer(configuration, where);
+                case 'imageOverlay':
+                    layer = this._loadImageOverlay(configuration, where);
                     break;
+                    case 'imageLayer':
+                        layer = this._loadImageOverlay(configuration, where);
+                        break;
                 case 'featureGroup':
                     layer = this._loadFeatureGroup(configuration, where);
                     break;
@@ -689,7 +692,7 @@ if (L != undefined) {
 
         },
 
-        _loadImageLayer: function(configuration) {
+        _loadImageOverlay: function(configuration) {
             if (configuration.imageUrl) { //check if there is an url
 
                 let options = Object.assign({
