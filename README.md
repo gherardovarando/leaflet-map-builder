@@ -115,7 +115,7 @@ Depending on the type of layer:
             "options": {
                 "tileSize": 256,
                 "noWrap": true,
-                "attribution": "&copy;<a href=http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
+                "attribution": "&copy;<a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
             },
         },
         "b": {
