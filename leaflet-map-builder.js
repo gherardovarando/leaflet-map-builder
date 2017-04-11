@@ -351,7 +351,7 @@ if (L != undefined) {
                 if (configuration.popup) {
                     layer.bindPopup(configuration.popup.content || configuration.popup, configuration.popup.options);
                 } else if (this._options.popup[configuration.type]) {
-                    layer.bindPopup(`${configuration.name}  <p>${configuration.details}</p>`);
+                    layer.bindPopup(`${configuration.name}  <p>${configuration.details || ''}</p>`);
                 }
             }
             return layer;
