@@ -31,6 +31,7 @@ The map configuration object must be as follow:
 
 ```
 configuration = {
+  type: 'map',
   name : 'readable map name', // optional
   authors : 'XXX <xxx@aaa.bbb>'
   layers : {
