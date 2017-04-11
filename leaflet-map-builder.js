@@ -372,8 +372,7 @@ if (L != undefined) {
                 } else {
                     where.addLayer(layer);
                 }
-                this.fitWorld();
-                this.fire('load', {
+                this.fire('load:layer', {
                     layer: layer,
                     configuration: configuration,
                     where: where
