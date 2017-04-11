@@ -23,13 +23,7 @@ It also supports the following controls:
 - drawControl (via Leafelt.draw)
 
 
-### API
-
-#### Map configuration structures
-
-The map configuration object must be as follow:
-
-
+## API
 
 
 ### Creation
