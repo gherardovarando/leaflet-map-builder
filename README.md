@@ -231,7 +231,8 @@ Depending on the type of layer:
             }
         }
     }
-}```
+}
+```
 
 
 #### Methods
