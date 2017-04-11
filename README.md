@@ -116,7 +116,7 @@ Depending on the type of layer:
                 "tileSize": 256,
                 "noWrap": true,
                 "attribution": "&copy;<a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
-            },
+            }
         },
         "b": {
             "name": "Stamen Watercolor",
