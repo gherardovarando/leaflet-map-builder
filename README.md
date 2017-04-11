@@ -263,5 +263,4 @@ Depending on the type of layer:
 
 ##### ``loadLayer(configuration, where)``
 
-
 #### Events
