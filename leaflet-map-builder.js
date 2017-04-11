@@ -365,7 +365,7 @@ if (L != undefined) {
                         }
                         this._controls.layers.addBaseLayer(layer, configuration.name);
                     } else {
-                        this._controls.layers.addOverlay(layer, options.name);
+                        this._controls.layers.addOverlay(layer, configuration.name);
                     }
                 } else if (typeof this._options.controls.layers === 'function') {
                     this._options.controls.layers(layer, configuration, where);
