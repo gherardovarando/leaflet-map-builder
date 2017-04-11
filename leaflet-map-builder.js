@@ -331,9 +331,9 @@ if (L != undefined) {
                 case 'imageOverlay':
                     layer = this._loadImageOverlay(configuration, where);
                     break;
-                    case 'imageLayer':
-                        layer = this._loadImageOverlay(configuration, where);
-                        break;
+                case 'imageLayer':
+                    layer = this._loadImageOverlay(configuration, where);
+                    break;
                 case 'featureGroup':
                     layer = this._loadFeatureGroup(configuration, where);
                     break;
@@ -356,6 +356,28 @@ if (L != undefined) {
                 } else if (this._options.popup[configuration.type]) {
                     layer.bindPopup(`${configuration.name}  <p>${configuration.details || ''}</p>`);
                 }
+
+                if (this._controls.layers && where === this.map) {
+                    if (configuration.baseLayer) {
+                        if (!this._state.baseLayerOn) {
+                            where.addLayer(layer);
+                            this._state.baseLayerOn = true;
+                        }
+                        this._controls.layers.addBaseLayer(layer, configuration.name);
+                    } else {
+                        this._controls.layers.addOverlay(layer, options.name);
+                    }
+                } else if (typeof this._options.controls.layers === 'function') {
+                    this._options.controls.layers(layer, configuration, where);
+                } else {
+                    where.addLayer(layer);
+                }
+                this.fitWorld();
+                this.fire('load', {
+                    layer: layer,
+                    configuration: configuration,
+                    where: where
+                });
             }
             return layer;
         },
@@ -452,20 +474,9 @@ if (L != undefined) {
             Object.keys(configuration.layers).map((key) => {
                 this.loadLayer(configuration.layers[key], layer);
             });
-            if (this._controls.layers) {
-                this._controls.layers.addOverlay(layer, configuration.name);
-            } else if (typeof this._options.controls.layers === 'function') {
-                this._options.controls.layers(layer, configuration, this.map);
-            } else {
-                this.map.addLayer(layer);
-            }
             if (configuration.role === 'drawnItems') {
                 this._drawnItems = layer;
             }
-            this.fire(`load:featuregroup`, {
-                layer: layer,
-                configuration: configuration
-            });
             return layer;
         },
 
@@ -477,31 +488,10 @@ if (L != undefined) {
             Object.keys(configuration.layers).map((key) => {
                 this.loadLayer(configuration.layers[key], layer);
             });
-            if (this._controls.layers) {
-                this._controls.layers.addOverlay(layer, configuration.name);
-            } else if (typeof this._controls.layers === 'function') {
-                this._controls.layers(layer, configuration, this.map);
-            } else {
-                this.map.addLayer(layer);
-            }
-            this.fire(`load:layergroup`, {
-                layer: layer,
-                configuration: configuration
-            });
             return layer;
         },
 
-        _loadPolygon: function(configuration, where) {
-            if (!where) {
-                if (this._drawnItems) {
-                    where = this._drawnItems;
-                } else {
-                    where = this.map;
-                }
-            }
-            if (typeof where == 'string') {
-                where = this._layers[where];
-            }
+        _loadPolygon: function(configuration) {
             let layer = L.polygon(configuration.latlngs ||
                 configuration.latLngs ||
                 configuration.path ||
@@ -509,56 +499,22 @@ if (L != undefined) {
                 configuration.coordinates ||
                 configuration.coords || [configuration.lats || configuration.y, configuration.langs || configuration.x], configuration.options || {});
 
-            where.addLayer(layer);
-            this.fire('load:polygon', {
-                layer: layer,
-                configuration: configuration,
-                where: where
-            });
             return layer;
         },
 
-        _loadRectangle: function(configuration, where) {
-            if (!where) {
-                if (this._drawnItems) {
-                    where = this._drawnItems;
-                } else {
-                    where = this.map;
-                }
-            }
+        _loadRectangle: function(configuration) {
             let layer = L.rectangle(configuration.bounds || configuration.latlngs ||
                 configuration.latLngs ||
                 configuration.path ||
                 configuration.points ||
                 configuration.coordinates ||
                 configuration.coords || [configuration.lats || configuration.y, configuration.langs || configuration.x], configuration.options || {});
-
-            where.addLayer(layer);
-            this.fire('load:rectangle', {
-                layer: layer,
-                configuration: configuration,
-                where: where
-            });
             return layer;
         },
 
 
-        _loadCircle: function(configuration, where) {
-            if (!where) {
-                if (this._drawnItems) {
-                    where = this._drawnItems;
-                } else {
-                    where = this.map;
-                }
-            }
+        _loadCircle: function(configuration) {
             let layer = L.circle(configuration.latlng || configuration.center, configuration.options || {});
-
-            where.addLayer(layer);
-            this.fire('load:circle', {
-                layer: layer,
-                configuration: configuration,
-                where: where
-            });
             return layer;
         },
 
@@ -571,12 +527,6 @@ if (L != undefined) {
                 }
             }
             let layer = L.polyline(configuration.latlngs, configuration.options || {});
-            where.addLayer(layer);
-            this.fire('load:circle', {
-                layer: layer,
-                configuration: configuration,
-                where: where
-            });
             return layer;
         },
 
@@ -609,13 +559,6 @@ if (L != undefined) {
             if (this._options.dev) {
                 configuration.details = `Lat:${layer.getLatLng().lat} Lng:${layer.getLatLng().lng}`;
             }
-            where.addLayer(layer);
-            this.fire('load:marker', {
-                layer: layer,
-                configuration: configuration,
-                where: where
-            });
-
             return layer;
         },
 
@@ -675,19 +618,6 @@ if (L != undefined) {
                     }
                 }
             }
-
-            if (this._controls.layers) {
-                this._controls.layers.addOverlay(guideLayer, configuration.name);
-            } else if (typeof this._controls.layers === 'function') {
-                this._controls.layers(guideLayer, configuration, this.map);
-            } else {
-                this.map.addLayer(guideLayer);
-            }
-
-            this.fire('load:guidelayer', {
-                layer: guideLayer,
-                configuration: configuration
-            });
             return guideLayer;
 
         },
@@ -704,26 +634,6 @@ if (L != undefined) {
                 }, configuration);
                 Object.assign(options, configuration.options);
                 let layer = L.imageOverlay(options.imageUrl, options.bounds, options);
-                if (this._controls.layers) {
-                    if (configuration.baseLayer) {
-                        if (!this._state.baseLayerOn) {
-                            this.map.addLayer(layer);
-                            this._state.baseLayerOn = true;
-                        }
-                        this._controls.layers.addBaseLayer(layer, configuration.name);
-                    } else {
-                        this._controls.layers.addOverlay(layer, configuration.name);
-                    }
-                } else if (typeof this._options.controls.layers === 'function') {
-                    this._options.controls.layers(layer, configuration, this.map);
-                } else {
-                    this.map.addLayer(layer);
-                }
-                this.fitWorld();
-                this.fire('load:imagelayer', {
-                    layer: layer,
-                    configuration: configuration
-                });
                 return layer;
 
             }
@@ -754,27 +664,6 @@ if (L != undefined) {
                 }
 
                 let layer = L.tileLayer(configuration.tileUrlTemplate, options);
-
-                if (this._controls.layers) {
-                    if (configuration.baseLayer) {
-                        if (!this._state.baseLayerOn) {
-                            this.map.addLayer(layer);
-                            this._state.baseLayerOn = true;
-                        }
-                        this._controls.layers.addBaseLayer(layer, configuration.name);
-                    } else {
-                        this._controls.layers.addOverlay(layer, options.name);
-                    }
-                } else if (typeof this._options.controls.layers === 'function') {
-                    this._options.controls.layers(layer, configuration, this.map);
-                } else {
-                    this.map.addLayer(layer);
-                }
-                this.fitWorld();
-                this.fire('load:tilelayer', {
-                    layer: layer,
-                    configuration: configuration
-                });
                 return layer;
             }
         }

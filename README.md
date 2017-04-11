@@ -115,28 +115,27 @@ Depending on the type of layer:
             "options": {
                 "tileSize": 256,
                 "noWrap": true,
-                "attribution": "&copy;<a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
-            },
+                "attribution": "&copy;<a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
+            }
         },
         "b": {
             "name": "Stamen Watercolor",
             "type": "imageOverlay",
             "imageUrl": "http://c.tile.stamen.com/watercolor/0/0/0.jpg",
+            "bounds": [
+                [
+                    360,
+                    180
+                ],
+                [
+                    -360,
+                    -180
+                ]
+            ],
             "options": {
                 "attribution": "&copy; stamen",
-                "bounds": [
-                    [
-                        360,
-                        180
-                    ],
-                    [
-                        -360,
-                        -180
-                    ]
-                ],
                 "opacity": 0.4
-            },
-            "_id": 2
+            }
         },
         "karona": {
             "name": "korona.geog.uni-heidelberg",
@@ -147,8 +146,7 @@ Depending on the type of layer:
                 "tileSize": 256,
                 "maxZoom": 18,
                 "noWrap": true
-            },
-            "_id": 3
+            }
         },
         "featgr": {
             "name": "some shapes",
@@ -215,7 +213,7 @@ Depending on the type of layer:
                     ],
                     "options": {
                         "radius": 200000
-                    },
+                    }
                 },
                 "circ2": {
                     "name": "circle",
@@ -226,7 +224,7 @@ Depending on the type of layer:
                     ],
                     "options": {
                         "radius": 3000000
-                    },
+                    }
                 }
             }
         }
