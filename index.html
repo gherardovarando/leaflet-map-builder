@@ -23,171 +23,200 @@
     <table>
         <tr>
             <th>
-                <div style="text-align:left">
-                    <div id="map" style="height:500px; width: 500px;"></div>
-                    <div style="text-align:left">
+                <h2>
+            Options
+          </h2>
             </th>
             <th>
-              <p><button title="set configuration" type='button' onclick="builder.setConfiguration(document.getElementById('input').value);"><i class='fa fa-angle-double-left fa-2x'></i></button></p>
-                <p><button title="reload" type='button' onclick="builder.reload();"><i class='fa fa-refresh fa-2x'></i></button></p>
-                <p><button title="clear" type='button' onclick="builder.clear();"><i class='fa fa-eraser fa-2x'></i></button></p>
             </th>
             <th>
-                <textarea id='input' type='text' style="color:orange; background-color:black; width:500px; height: 500px; display:inline"></textarea>
+                <button title="reload" type='button' onclick="builder.reload();"><i class='fa fa-refresh fa-2x'></i></button>
+                <button title="clear" type='button' onclick="builder.clear();"><i class='fa fa-eraser fa-2x'></i></button>
+            </th>
+            <th>
+            </th>
+            <th>
+                <h2>
+            Configuration
+          </h2>
             </th>
         </tr>
+        <tr>
+            <th>
+                <textarea id='options' type='text' style="display:none; color:orange; background-color:black; width:auto; height: 500px; display:inline"></textarea>
+            </th>
+            <th>
+                <p><button title="set options" type='button' onclick="builder.setOptions(JSON.parse(document.getElementById('options').value));"><i class='fa fa-angle-double-right fa-2x'></i></button></p>
+            </th>
+            <th>
+                <div style="text-align:left; width:30%">
+                    <div id="map" style="height:500px; width: 500px;"></div>
+                </div>
+            </th>
+            <th>
+                <p><button title="set configuration" type='button' onclick="builder.setConfiguration(document.getElementById('configuration').value);"><i class='fa fa-angle-double-left fa-2x'></i></button></p>
+
+            </th>
+            <th>
+
+                <textarea id='configuration' type='text' style="color:orange; background-color:black; width:100%; height: 500px; display:inline"></textarea>
+            </th>
+        </tr>
+
 
     </table>
 </body>
 
 
 <script>
-var configuration = {
-    type: 'map',
-    layers: {
-        2: {
-            name: 'cartoDb-base',
-            type: 'tileLayer',
-            tileUrlTemplate: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
-            baseLayer: true,
-            options: {
-                tileSize: 256,
-                maxZoom: 18,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
-            }
-        },
-        a: {
-            name: 'OpenStreetMap',
-            type: 'tileLayer',
-            tileUrlTemplate: 'http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            baseLayer: true,
-            options: {
-                tileSize: 256,
-                noWrap: true,
-                attribution: '&copy;<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }
-        },
-        b: {
-            name: 'Stamen Watercolor',
-            type: 'imageOverlay',
-            imageUrl: 'http://c.tile.stamen.com/watercolor/0/0/0.jpg',
-            options: {
-                attribution: '&copy; stamen',
-                bounds: [
-                    [360, 180],
-                    [-360, -180]
+    var configuration = {
+        type: 'map',
+        layers: {
+            2: {
+                name: 'cartoDb-base',
+                type: 'tileLayer',
+                tileUrlTemplate: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
+                baseLayer: true,
+                options: {
+                    tileSize: 256,
+                    maxZoom: 18,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
+                }
+            },
+            a: {
+                name: 'OpenStreetMap',
+                type: 'tileLayer',
+                tileUrlTemplate: 'http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                baseLayer: true,
+                options: {
+                    tileSize: 256,
+                    noWrap: true,
+                    attribution: '&copy;<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }
+            },
+            b: {
+                name: 'Stamen Watercolor',
+                type: 'imageOverlay',
+                imageUrl: 'http://c.tile.stamen.com/watercolor/0/0/0.jpg',
+                options: {
+                    attribution: '&copy; stamen',
+                    bounds: [
+                        [360, 180],
+                        [-360, -180]
+                    ],
+                    opacity: 0.4
+                }
+            },
+            'karona': {
+                name: 'korona.geog.uni-heidelberg',
+                type: 'tileLayer',
+                tileUrlTemplate: 'http://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}',
+                baseLayer: true,
+                options: {
+                    tileSize: 256,
+                    maxZoom: 18,
+                    noWrap: true
+                }
+            },
+            c: {
+                type: 'polygon',
+                latlngs: [
+                    [0, 0],
+                    [10, 34],
+                    [56, 78],
+                    [0, 0]
                 ],
-                opacity: 0.4
-            }
-        },
-        'karona': {
-            name: 'korona.geog.uni-heidelberg',
-            type: 'tileLayer',
-            tileUrlTemplate: 'http://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}',
-            baseLayer: true,
-            options: {
-                tileSize: 256,
-                maxZoom: 18,
-                noWrap: true
-            }
-        },
-        c: {
-            type: 'polygon',
-            latlngs: [
-                [0, 0],
-                [10, 34],
-                [56, 78],
-                [0, 0]
-            ],
-            details: '',
-            name: 'random polygon',
-            options: {
-                color: "green",
-                fillColor: "white",
-                opacity: 1,
-                fillOpacity: 0.8
-            }
-        },
-        e: {
-            name: "bottom-left",
-            type: 'marker',
-            details: 'lat: -360, lng: -180',
-            latlng: [-360, -180]
-        },
-        f: {
-            name: "top-right",
-            type: 'marker',
-            details: 'lat: 360, lng: 180',
-            latlng: [360, 180]
-        },
-        group: {
-            name: 'some markers',
-            type: 'layerGroup',
-            layers: {
-                '1': {
-                    type: 'marker',
-                    latlng: [10, 7]
-                },
-                '2': {
-                    type: 'marker',
-                    latlng: [56, 89]
-                },
-                '3': {
-                    type: 'marker',
-                    latlng: [-45, 5]
+                details: '',
+                name: 'random polygon',
+                options: {
+                    color: "green",
+                    fillColor: "white",
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }
+            },
+            e: {
+                name: "bottom-left",
+                type: 'marker',
+                details: 'lat: -360, lng: -180',
+                latlng: [-360, -180]
+            },
+            f: {
+                name: "top-right",
+                type: 'marker',
+                details: 'lat: 360, lng: 180',
+                latlng: [360, 180]
+            },
+            group: {
+                name: 'some markers',
+                type: 'layerGroup',
+                layers: {
+                    '1': {
+                        type: 'marker',
+                        latlng: [10, 7]
+                    },
+                    '2': {
+                        type: 'marker',
+                        latlng: [56, 89]
+                    },
+                    '3': {
+                        type: 'marker',
+                        latlng: [-45, 5]
+                    }
+                }
+            },
+            featgr: {
+                name: 'some shapes',
+                type: 'featureGroup',
+                layers: {
+                    1: {
+                        type: 'polygon',
+                        latlngs: [
+                            [34, -10],
+                            [7, 9],
+                            [19, -54],
+                            [78, -90]
+                        ]
+                    },
+                    2: {
+                        type: 'polygon',
+                        latlngs: [
+                            [70, 123],
+                            [104, 115],
+                            [88, 140],
+                            [60, 110]
+                        ]
+                    },
+                    circ: {
+                        name: "circle",
+                        type: "circle",
+                        latlng: [0, 0],
+                        options: {
+                            "radius": 200000
+                        }
+                    },
+                    circ2: {
+                        name: "circle",
+                        type: "circle",
+                        latlng: [-20, 80],
+                        options: {
+                            "radius": 3000000
+                        }
+                    },
+
                 }
             }
-        },
-        featgr: {
-            name: 'some shapes',
-            type: 'featureGroup',
-            layers: {
-                1: {
-                    type: 'polygon',
-                    latlngs: [
-                        [34, -10],
-                        [7, 9],
-                        [19, -54],
-                        [78, -90]
-                    ]
-                },
-                2: {
-                    type: 'polygon',
-                    latlngs: [
-                        [70, 123],
-                        [104, 115],
-                        [88, 140],
-                        [60, 110]
-                    ]
-                },
-                circ: {
-                        name:"circle",
-                        type: "circle",
-                        latlng: [0,0],
-                        options: {"radius": 200000}
-                },
-                circ2: {
-                        name:"circle",
-                        type: "circle",
-                        latlng: [-20,80],
-                        options: {"radius": 3000000}
-                },
-
-            }
         }
-    }
-};
-    var map = L.map('map', {
-        zoomControl: false, //use the builder to put controls
-        attributionControl: false //use the builder to put controls
-    });
+    };
 
-    var builder = L.mapBuilder(map, {
+
+
+    var options = {
         controls: {
             zoom: true,
             layers: {
-              autoZIndex: false,
-              sortLayers: false
+                autoZIndex: false,
+                sortLayers: false
             },
             attribution: {
                 prefix: "<a href= 'https://github.com/gherardovarando/leaflet-map-builder'> leaflet-map-builder</a>"
@@ -197,15 +226,25 @@ var configuration = {
             marker: true,
             polyline: true,
             polygon: true,
-            circle: true
+            circle: true,
+            rectangle: false
         },
         popup: {
-            polygon: true
+            marker: true,
+            polyline: false,
+            polygon: false,
+            circle: true,
+            rectangle: false
         }
-    }, configuration);
-    let input = document.getElementById('input');
-    input.value = JSON.stringify(configuration,null,4);
+    };
 
+    var map = L.map('map', {
+        zoomControl: false, //use the builder to put controls
+        attributionControl: false //use the builder to put controls
+    });
+    document.getElementById('configuration').value = JSON.stringify(configuration, null, 4);
+    document.getElementById('options').value = JSON.stringify(options, null, 4);
+    var builder = L.mapBuilder(map, options, configuration);
 </script>
 
 
