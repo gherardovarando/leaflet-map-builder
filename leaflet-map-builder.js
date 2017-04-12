@@ -71,9 +71,7 @@ if (L != undefined) {
         initialize: function(map, options, configuration) {
             this.setMap(map);
             this.setOptions(options);
-
             this.setConfiguration(configuration);
-
         },
 
         /**
@@ -83,7 +81,7 @@ if (L != undefined) {
         setMap: function(map) {
             if (map instanceof L.Map) {
                 this.map = map;
-                this.fire("map-added", map);
+                this.fire("set:map", map);
             } else {
                 throw {
                     type: "map error",
@@ -105,11 +103,17 @@ if (L != undefined) {
             }
             configuration.type = configuration.type || 'undefined';
             if (configuration.type.includes("map")) {
-                //return Object.assign({}, configuration);
-                configuration.layers = configuration.layers || {};
-                return configuration;
+                return Object.assign({
+                    layers: {}
+                }, configuration);
+                //configuration.layers = configuration.layers || {};
+                //return configuration;
             } else {
-                throw 'ERROR: configuration must have "type":"..map.." ';
+                throw {
+                    type: "configuration error",
+                    configuration: configuration
+
+                };
             }
         },
 
@@ -125,7 +129,7 @@ if (L != undefined) {
         // return a copy of the configuration object
         getConfiguration: function() {
             //  return Object.assign({}, this._configuration);
-            return this._configuration;
+            return Object.assign({}, this._configuration);
         },
 
         setOptions: function(options) {
@@ -214,7 +218,7 @@ if (L != undefined) {
                 if (this._configuration.minZoom) {
                     this.setMinZoom(this._configuration.minZoom);
                 }
-                this.fitWorld();
+                this.map.fitWorld();
                 this.fire('reload');
             }
         },
@@ -230,14 +234,6 @@ if (L != undefined) {
 
         offMap: function(ev) {
             this.map.off(ev);
-        },
-
-        fitWorld() {
-            this.map.fitWorld();
-        },
-
-        getSize() {
-            return this._size;
         },
 
         getDrawingColor: function() {
@@ -439,7 +435,7 @@ if (L != undefined) {
             let options = Object.assign({}, this._options.controls.layers);
             this._controls.layers = L.control.layers(null, null, options);
             this.map.addControl(this._controls.layers);
-            this.fire('add:control', {
+            this.fire('load:control', {
                 type: 'layers',
                 control: this._controls.layers
             });
@@ -449,7 +445,7 @@ if (L != undefined) {
             let options = Object.assign({}, this._options.controls.zoom);
             this._controls.zoom = L.control.zoom(options);
             this.map.addControl(this._controls.zoom);
-            this.fire('add:control', {
+            this.fire('load:control', {
                 type: 'zoom',
                 control: this._controls.zoom
             });
@@ -459,7 +455,7 @@ if (L != undefined) {
             let options = Object.assign({}, this._options.controls.attribution);
             this._controls.attribution = L.control.attribution(options);
             this.map.addControl(this._controls.attribution);
-            this.fire('add:control', {
+            this.fire('load:control', {
                 type: 'attribution',
                 control: this._controls.attribution
             });
@@ -599,9 +595,8 @@ if (L != undefined) {
             if (configuration.points) {
 
             } else {
-                let baselayer = this._activeBaseLayer || this._tilesLayers[0];
-                let size = configuration.size || this.getSize();
-                let scale = size / this.getSize();
+                let size = configuration.size || 256;
+                let scale =configuration.scale || 1;
                 let opt = Object.assign({
                     color: this.getDrawingColor(),
                     fillColor: this.getDrawingColor(),
@@ -618,7 +613,6 @@ if (L != undefined) {
                 }
             }
             return guideLayer;
-
         },
 
         _loadImageOverlay: function(configuration) {

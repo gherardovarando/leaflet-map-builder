@@ -251,8 +251,6 @@ Depending on the type of layer:
 
 ##### ``offMap(event)``
 
-##### ``fitWorld()``
-
 ##### ``setDrawingColor(color)``
 
 ##### ``getDrawingColor()``
