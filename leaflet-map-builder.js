@@ -160,9 +160,6 @@ if (L != undefined) {
                 this._removeMapListener();
                 //this.map.off();
             }
-            this._configuration = {
-                layers: {}
-            };
             this._drawnItems = null;
             this._indx = 0;
             this._nameIndx = 0;
