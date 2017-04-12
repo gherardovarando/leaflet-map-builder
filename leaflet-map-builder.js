@@ -160,6 +160,9 @@ if (L != undefined) {
                 this._removeMapListener();
                 //this.map.off();
             }
+            this._configuration = {
+                layers: {}
+            };
             this._drawnItems = null;
             this._indx = 0;
             this._nameIndx = 0;
@@ -223,10 +226,6 @@ if (L != undefined) {
             }
         },
 
-        center: function() {
-            this.map.setView([0, 0], 0);
-        },
-
         onMap: function(ev, cl) {
             this._eventsmap.push(ev);
             this.map.on(ev, cl);
@@ -273,19 +272,6 @@ if (L != undefined) {
             }
         },
 
-        setMaxZoom: function(zoom) {
-            this.map.setMaxZoom(zoom);
-            this.fire('set:maxZoom', {
-                maxZoom: zoom
-            });
-        },
-
-        setMinZoom: function(zoom) {
-            this.map.setMinZoom(zoom);
-            this.fire('set:minZoom', {
-                minZoom: zoom
-            });
-        },
 
         loadLayer: function(configuration, where) {
             if (!configuration) return;
@@ -596,7 +582,7 @@ if (L != undefined) {
 
             } else {
                 let size = configuration.size || 256;
-                let scale =configuration.scale || 1;
+                let scale = configuration.scale || 1;
                 let opt = Object.assign({
                     color: this.getDrawingColor(),
                     fillColor: this.getDrawingColor(),
