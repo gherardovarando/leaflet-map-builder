@@ -522,7 +522,7 @@ if (L != undefined) {
             let opt = Object.assign({
                 radius: 10
             }, configuration.options);
-            let layer = L.marker(configuration.latlng ||
+            let layer = L.circleMarker(configuration.latlng ||
                 configuration.latLng ||
                 configuration.center ||
                 configuration.point ||
@@ -639,7 +639,7 @@ if (L != undefined) {
             }
 
         },
-        
+
         _loadTileLayerWMS: function(configuration) {
             //create layer
             if (configuration.baseUrl) { //check if there is the tilesUrlTemplate
