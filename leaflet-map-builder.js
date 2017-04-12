@@ -319,6 +319,9 @@ if (L != undefined) {
                 case 'layerGroup':
                     layer = this._loadLayerGroup(configuration, where);
                     break;
+                case 'tileLayerWMS':
+                    layer = this._loadTileLayerWMS(configuration, where);
+                    break;
                 default:
                     return;
             }
@@ -508,6 +511,27 @@ if (L != undefined) {
             return layer;
         },
 
+        _loadCircleMarker: function(configuration, where) {
+            if (!where) {
+                if (this._drawnItems) {
+                    where = this._drawnItems;
+                } else {
+                    where = this.map;
+                }
+            }
+            let opt = Object.assign({
+                radius: 10
+            }, configuration.options);
+            let layer = L.marker(configuration.latlng ||
+                configuration.latLng ||
+                configuration.center ||
+                configuration.point ||
+                configuration.coordinate ||
+                configuration.coord || [configuration.lat || configuration.y, configuration.lang || configuration.x], opt);
+
+            return layer;
+        },
+
         _loadMarker: function(configuration, where) {
             if (!where) {
                 if (this._drawnItems) {
@@ -645,9 +669,38 @@ if (L != undefined) {
         }
     });
 
-    L.mapBuilder = function(map, options, configuration) {
-        return (new L.MapBuilder(map, options, configuration));
+    _loadTileLayerWMS: function(configuration) {
+        //create layer
+        if (configuration.baseUrl) { //check if there is the tilesUrlTemplate
+            let options = Object.assign({}, configuration);
+            Object.assign(options, configuration.options);
+            if (options.tileSize) {
+                if (Array.isArray(options.tileSize)) {
+                    options.tileSize = L.point(options.tileSize[0], options.tileSize[1]);
+                    this._size = this._size || Math.max(options.tileSize);
+                }
+                if (options.tileSize.x && options.tileSize.y) {
+                    options.tileSize = L.point(options.tileSize.x, options.tileSize.y);
+                    this._size = this._size || Math.max(options.tileSize.x, options.tileSize.y);
+                }
+                if (options.tileSize > 0) {
+                    this._size = this._size || options.tileSize;
+                }
+            } else {
+                options.tileSize = 256;
+                this._size = this._size || options.tileSize;
+            }
+            if (options.layers) {
+                let layer = L.tileLayer.wms(configuration.baseUrl, options);
+                return layer;
+            }
+        }
     }
+});
+
+L.mapBuilder = function(map, options, configuration) {
+    return (new L.MapBuilder(map, options, configuration));
+}
 
 
 }

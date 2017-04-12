@@ -6,6 +6,7 @@
 leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format.
 leaflet-map-builder can create:
 -  tileLayer
+-  tileLayerWMS
 -  imageOverlay
 -  featureGroup
 -  layerGroup
@@ -69,9 +70,14 @@ The configuration object that defines the layers that will be added to the map.
 
 Depending on the type of layer:
 ###### tileLayer
-  - `tileUrlTemplate` String
+  - ``tileUrlTemplate`` String
   - ``baseLayer`` Logical
   - ``options`` TileLayer options
+
+###### tileLayerWMS
+    - ``baseUrl`` String
+    - ``baseLayer`` Logical
+    - ``options`` TileLayer.WMS options
 
 ###### imageOverlay
  - ``imageUrl`` String
@@ -250,10 +256,10 @@ Set the configuration object and load it.
 Set the options and reload the map, the current configuration will be loaded if present.
 
 ##### ``clear()``
-Clear the map and the configuration.
+Clear the map layers, controls and the events (just the events added with ``onMap`` method).
 
 ##### ``reload()``
-Reload the map with the current options and configuration.
+Reload (clean and load) the map with the current options and configuration. That is load the controls specified by the options and load all the layers in the configuration object.
 
 ##### ``loadLayer(configuration, where)``
 - ``configuration`` layer configuration object.
