@@ -639,6 +639,34 @@ if (L != undefined) {
             }
 
         },
+        
+        _loadTileLayerWMS: function(configuration) {
+            //create layer
+            if (configuration.baseUrl) { //check if there is the tilesUrlTemplate
+                let options = Object.assign({}, configuration);
+                Object.assign(options, configuration.options);
+                if (options.tileSize) {
+                    if (Array.isArray(options.tileSize)) {
+                        options.tileSize = L.point(options.tileSize[0], options.tileSize[1]);
+                        this._size = this._size || Math.max(options.tileSize);
+                    }
+                    if (options.tileSize.x && options.tileSize.y) {
+                        options.tileSize = L.point(options.tileSize.x, options.tileSize.y);
+                        this._size = this._size || Math.max(options.tileSize.x, options.tileSize.y);
+                    }
+                    if (options.tileSize > 0) {
+                        this._size = this._size || options.tileSize;
+                    }
+                } else {
+                    options.tileSize = 256;
+                    this._size = this._size || options.tileSize;
+                }
+                if (options.layers) {
+                    let layer = L.tileLayer.wms(configuration.baseUrl, options);
+                    return layer;
+                }
+            }
+        },
 
 
         _loadTileLayer: function(configuration) {
@@ -669,38 +697,12 @@ if (L != undefined) {
         }
     });
 
-    _loadTileLayerWMS: function(configuration) {
-        //create layer
-        if (configuration.baseUrl) { //check if there is the tilesUrlTemplate
-            let options = Object.assign({}, configuration);
-            Object.assign(options, configuration.options);
-            if (options.tileSize) {
-                if (Array.isArray(options.tileSize)) {
-                    options.tileSize = L.point(options.tileSize[0], options.tileSize[1]);
-                    this._size = this._size || Math.max(options.tileSize);
-                }
-                if (options.tileSize.x && options.tileSize.y) {
-                    options.tileSize = L.point(options.tileSize.x, options.tileSize.y);
-                    this._size = this._size || Math.max(options.tileSize.x, options.tileSize.y);
-                }
-                if (options.tileSize > 0) {
-                    this._size = this._size || options.tileSize;
-                }
-            } else {
-                options.tileSize = 256;
-                this._size = this._size || options.tileSize;
-            }
-            if (options.layers) {
-                let layer = L.tileLayer.wms(configuration.baseUrl, options);
-                return layer;
-            }
-        }
-    }
-});
 
-L.mapBuilder = function(map, options, configuration) {
-    return (new L.MapBuilder(map, options, configuration));
-}
+
+
+    L.mapBuilder = function(map, options, configuration) {
+        return (new L.MapBuilder(map, options, configuration));
+    }
 
 
 }
