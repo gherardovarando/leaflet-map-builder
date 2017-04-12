@@ -236,31 +236,42 @@ Depending on the type of layer:
 #### Methods
 
 ##### ``setMap(map)``
+- ``map`` L.Map object
+
+Associate the leaflet map object
 
 ##### ``setConfiguration(configuration)``
+- ``configuration`` configuration object
+
+Set the configuration object and load it.
 
 ##### ``setOptions(options)``
+- ``options`` options object.
+Set the options and reload the map, the current configuration will be loaded if present.
 
 ##### ``clear()``
+Clear the map and the configuration.
 
 ##### ``reload()``
+Reload the map with the current options and configuration.
 
-##### ``center()``
+##### ``loadLayer(configuration, where)``
+- ``configuration`` layer configuration object.
+- ``where`` (optional), L.Map object or L.Layer as a featureGroup or layerGroup (must have an .addLayer method)
+
+Load the layer specified by the ``configuration`` in ``where`` (or into the associated leaflet map).
 
 ##### ``onMap(event, cl)``
 
+Register event on map, events registered by this method are cleared on ``clear`` method.
+
 ##### ``offMap(event)``
 
-##### ``fitWorld()``
+Unregister a map event.
 
 ##### ``setDrawingColor(color)``
 
 ##### ``getDrawingColor()``
 
-##### ``setMaxZoom``
-
-##### ``setMinZoom``
-
-##### ``loadLayer(configuration, where)``
 
 #### Events
