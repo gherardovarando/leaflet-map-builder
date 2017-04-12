@@ -15,6 +15,7 @@ leaflet-map-builder can create:
 -  circle
 -  polyline
 -  marker
+-  circleMarker
 
 It also supports the following controls:
 
@@ -65,7 +66,7 @@ The configuration object that defines the layers that will be added to the map.
 
 ##### Layer configuration
 
-- ``type`` String, one of the possible layer types: tileLayer, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker.
+- ``type`` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circleMarker.
 - ``name`` String (optional).
 
 Depending on the type of layer:
@@ -75,9 +76,9 @@ Depending on the type of layer:
   - ``options`` TileLayer options
 
 ###### tileLayerWMS
-    - ``baseUrl`` String
-    - ``baseLayer`` Logical
-    - ``options`` TileLayer.WMS options
+  - ``baseUrl`` String
+  - ``baseLayer`` Logical
+  - ``options`` TileLayer.WMS options
 
 ###### imageOverlay
  - ``imageUrl`` String
@@ -108,6 +109,10 @@ Depending on the type of layer:
 ###### marker
 - ``latlng`` LatLng
 - ``options`` MarkerOptions
+
+###### circleMarker
+- ``latlng`` LatLng
+- ``options`` CircleMarkerOptions
 ###### Example
 ```
 {
@@ -241,6 +246,8 @@ Depending on the type of layer:
 
 #### Methods
 
+Since ``L.MapBuilder`` extends ``L.Evented`` it inherits all its methods.
+
 ##### ``setMap(map)``
 - ``map`` L.Map object
 
@@ -278,6 +285,5 @@ Unregister a map event.
 ##### ``setDrawingColor(color)``
 
 ##### ``getDrawingColor()``
-
 
 #### Events
