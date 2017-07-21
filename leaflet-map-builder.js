@@ -112,7 +112,6 @@ if (L != undefined) {
                 throw {
                     type: "configuration error",
                     configuration: configuration
-
                 };
             }
         },
@@ -129,7 +128,8 @@ if (L != undefined) {
         // return a copy of the configuration object
         getConfiguration: function() {
             //  return Object.assign({}, this._configuration);
-            return Object.assign({}, this._configuration);
+            //return Object.assign({}, this._configuration);
+            return this._configuration;
         },
 
         setOptions: function(options) {
@@ -191,16 +191,15 @@ if (L != undefined) {
                 if (this._options.controls.attribution) {
                     this._addAttributionControl();
                 }
-                this._indx = 0;
                 //load all the layers
                 if (this._configuration.layers) {
                     if (this._configuration.layers instanceof Array) {
                         this._configuration.layers.map((layer, key) => {
-                            this.loadLayer(layer);
+                            this.loadLayer(layer, this.map);
                         });
                     } else { //we assume is an object
                         Object.keys(this._configuration.layers).map((key) => {
-                            this.loadLayer(this._configuration.layers[key]);
+                            this.loadLayer(this._configuration.layers[key], this.map);
                         });
                     }
 
@@ -219,6 +218,9 @@ if (L != undefined) {
                     this.setMinZoom(this._configuration.minZoom);
                 }
                 this.map.fitWorld();
+                if (this._configuration.center) {
+                    this.map.setView(this._configuration.center, this._configuration.zoom || 0);
+                }
                 this.fire('reload');
             }
         },
@@ -272,8 +274,8 @@ if (L != undefined) {
 
         loadLayer: function(configuration, where) {
             if (!configuration) return;
-            configuration.name = configuration.name || `${configuration.type}_${this._nameIndx++}`;
             configuration._id = this._indx++;
+            configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
             configuration.options = configuration.options || {
                 color: this.getDrawingColor(),
                 fillColor: this.getDrawingColor()
@@ -412,8 +414,6 @@ if (L != undefined) {
             let drawControl = new L.Control.Draw(options);
             this._controls.draw = drawControl;
             this.map.addControl(drawControl);
-
-
         },
 
         _addLayersControl: function() {
@@ -452,12 +452,12 @@ if (L != undefined) {
             configuration.layers = configuration.layers || {};
             let layer = L.featureGroup();
             this.map.addLayer(layer);
-            Object.keys(configuration.layers).map((key) => {
-                this.loadLayer(configuration.layers[key], layer);
-            });
             if (configuration.role === 'drawnItems') {
                 this._drawnItems = layer;
             }
+            Object.keys(configuration.layers).map((key) => {
+                this.loadLayer(configuration.layers[key], layer);
+            });
             return layer;
         },
 

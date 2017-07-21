@@ -1,21 +1,22 @@
 # Leaflet Map Builder
-#### by  gherardo.varando <gherardo.varando@gmail.com>
 
-#### demo at https://gherardovarando.github.io/leaflet-map-builder/
+## by gherardo.varando <gherardo.varando@gmail.com>
 
-leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format.
-leaflet-map-builder can create:
--  tileLayer
--  tileLayerWMS
--  imageOverlay
--  featureGroup
--  layerGroup
--  polygon
--  rectangle
--  circle
--  polyline
--  marker
--  circleMarker
+## demo at <https://gherardovarando.github.io/leaflet-map-builder/>
+
+leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format. leaflet-map-builder can create:
+
+- tileLayer
+- tileLayerWMS
+- imageOverlay
+- featureGroup
+- layerGroup
+- polygon
+- rectangle
+- circle
+- polyline
+- marker
+- circleMarker
 
 It also supports the following controls:
 
@@ -24,98 +25,117 @@ It also supports the following controls:
 - attributionControl
 - drawControl (via Leafelt.draw)
 
-
 ## API
-
 
 ### Creation
 
-##### `` L.mapBuilder(map, options, configuration) ``
-- ``map`` leaflet map object, instance of ``L.Map``
--  ``options`` options object (optional)
-- ``configuration`` configuration object (optional), it can be set in a second time with ``setConfiguration`` method.
+#### `L.mapBuilder(map, options, configuration)`
 
+- `map` leaflet map object, instance of `L.Map`
+- `options` options object (optional)
+- `configuration` configuration object (optional), it can be set in a second time with `setConfiguration` method.
 
 #### Options
 
 The option that can be passed on creation
-- ``drawingColor`` String, the color to draw
-- ``controls``:
-  - ``draw`` L.Control.Draw options
-  - ``zoom`` L.Control.Zoom options
-  - ``layers`` L.Control.Layers options
-- ``tooltip`` :
-   - ``polygon`` logical
-   - ``rectangle``  logical
-   - ``polyline`` logical
-   - ``circle`` logical
-- ``popup``   
-  - ``polygon`` logical
-  - ``rectangle``  logical
-  - ``polyline`` logical
-  - ``circle`` logical
+
+- `drawingColor` String, the color to draw
+- `controls`:
+
+  - `draw` L.Control.Draw options
+  - `zoom` L.Control.Zoom options
+  - `layers` L.Control.Layers options or a function `function(layer, configuration, where)`, if `null` or `false` the layers will be added to the map directly.
+
+- `tooltip` :
+
+  - `polygon` logical
+  - `rectangle` logical
+  - `polyline` logical
+  - `circle` logical
+
+- `popup`
+
+  - `polygon` logical
+  - `rectangle` logical
+  - `polyline` logical
+  - `circle` logical
 
 #### Configuration
 
 The configuration object that defines the layers that will be added to the map.
 
-- ``type``, String equal to ``map`` otherwise the configuration will not be loaded.
-- ``name``, String (optional).
-- ``authors``, String (optional).
-- ``layers``, layer configuration object.
+- `type`, String equal to `map` otherwise the configuration will not be loaded.
+- `name`, String (optional).
+- `authors`, String (optional).
+- `layers`, layer configuration object (optional).
+- `center`, Array (optional), where the map has to be centered on loading.
+- `zoom`, Integer (optional), zoom to be set in loading.
 
 ##### Layer configuration
 
-- ``type`` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circleMarker.
-- ``name`` String (optional).
+- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circleMarker.
+- `name` String (optional).
+- `author` String (optional).
 
 Depending on the type of layer:
+
 ###### tileLayer
-  - ``tileUrlTemplate`` String
-  - ``baseLayer`` Logical
-  - ``options`` TileLayer options
+
+- `tileUrlTemplate` String
+- `baseLayer` Logical
+- `options` TileLayer options
 
 ###### tileLayerWMS
-  - ``baseUrl`` String
-  - ``baseLayer`` Logical
-  - ``options`` TileLayer.WMS options
+
+- `baseUrl` String
+- `baseLayer` Logical
+- `options` TileLayer.WMS options
 
 ###### imageOverlay
- - ``imageUrl`` String
- - ``baseLayer`` Logical
- - ``bounds``   LatLng bounds
- - ``options``  ImageOverlay options
+
+- `imageUrl` String
+- `baseLayer` Logical
+- `bounds` LatLng bounds
+- `options` ImageOverlay options
 
 ###### featureGroup/layerGroup
- - ``layers`` Object, layers configurations
 
+- `layers` Object, layers configurations
 
 ###### polyline
-  - ``latlngs`` LatLngs
-  - ``options`` PolylineOptions
+
+- `latlngs` LatLngs
+- `options` PolylineOptions
 
 ###### polygon
- - ``latlngs`` LatLngs
- - ``options`` PolylineOptions
+
+- `latlngs` LatLngs
+- `options` PolylineOptions
 
 ###### rectangle
-- ``latlngs`` LatLngs bounds
-- ``options`` PolylineOptions
+
+- `latlngs` LatLngs bounds
+- `options` PolylineOptions
 
 ###### circle
-- ``latlng`` LatLng
-- ``options`` CircleOptions
+
+- `latlng` LatLng
+- `options` CircleOptions
 
 ###### marker
-- ``latlng`` LatLng
-- ``options`` MarkerOptions
+
+- `latlng` LatLng
+- `options` MarkerOptions
 
 ###### circleMarker
-- ``latlng`` LatLng
-- ``options`` CircleMarkerOptions
-###### Example
-```
-{
+
+- `latlng` LatLng
+- `options` CircleMarkerOptions
+
+  ###### Example
+
+  ```
+  {
     "type": "map",
     "layers": {
         "a": {
@@ -126,7 +146,7 @@ Depending on the type of layer:
             "options": {
                 "tileSize": 256,
                 "noWrap": true,
-                "attribution": "&copy;<a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
+                "attribution": "©<a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
             }
         },
         "b": {
@@ -144,7 +164,7 @@ Depending on the type of layer:
                 ]
             ],
             "options": {
-                "attribution": "&copy; stamen",
+                "attribution": "© stamen",
                 "opacity": 0.4
             }
         },
@@ -240,50 +260,85 @@ Depending on the type of layer:
             }
         }
     }
-}
-```
-
+  }
+  ```
 
 #### Methods
 
-Since ``L.MapBuilder`` extends ``L.Evented`` it inherits all its methods.
+Since `L.MapBuilder` extends `L.Evented` it inherits all its methods.
 
-##### ``setMap(map)``
-- ``map`` L.Map object
+##### `setMap(map)`
+
+- `map` L.Map object
 
 Associate the leaflet map object
 
-##### ``setConfiguration(configuration)``
-- ``configuration`` configuration object
+##### `setConfiguration(configuration)`
+
+- `configuration` configuration object
 
 Set the configuration object and load it.
 
-##### ``setOptions(options)``
-- ``options`` options object.
-Set the options and reload the map, the current configuration will be loaded if present.
+##### `setOptions(options)`
 
-##### ``clear()``
-Clear the map layers, controls and the events (just the events added with ``onMap`` method).
+- `options` options object. Set the options and reload the map, the current configuration will be loaded if present.
 
-##### ``reload()``
+##### `clear()`
+
+Clear the map layers, controls and the events (just the events added with `onMap` method).
+
+##### `reload()`
+
 Reload (clean and load) the map with the current options and configuration. That is load the controls specified by the options and load all the layers in the configuration object.
 
-##### ``loadLayer(configuration, where)``
-- ``configuration`` layer configuration object.
-- ``where`` (optional), L.Map object or L.Layer as a featureGroup or layerGroup (must have an .addLayer method)
+##### `loadLayer(configuration, where)`
 
-Load the layer specified by the ``configuration`` in ``where`` (or into the associated leaflet map).
+- `configuration` layer configuration object.
+- `where` (optional), L.Map object or L.Layer as a featureGroup or layerGroup (must have an .addLayer method)
 
-##### ``onMap(event, cl)``
+Load the layer specified by the `configuration` in `where` (or into the associated leaflet map).
 
-Register event on map, events registered by this method are cleared on ``clear`` method.
+##### `onMap(event, cl)`
 
-##### ``offMap(event)``
+Register event on map, events registered by this method are cleared on `clear` method.
+
+##### `offMap(event)`
 
 Unregister a map event.
 
-##### ``setDrawingColor(color)``
+##### `setDrawingColor(color)`
 
-##### ``getDrawingColor()``
+##### `getDrawingColor()`
 
 #### Events
+
+##### `set:map`
+
+Emitted when the a map object is linked to the mapBuilder.
+
+##### `set:configuration`
+
+Emitted when a new configuration object is set.
+
+##### `clear`
+
+Emitted when the map is cleared.
+
+##### `reload`
+
+Emitted when the reloading is completed.
+
+##### `load:layer`
+
+Emitted when a layer is loaded. Returns
+
+- `layer` leaflet layer loaded.
+- `configuration` configuration object of the layer.
+- `where` leaflet object where the layer is(has to be, depending of the value of the layers control) added.
+
+##### `load:control`
+
+Emitted when a control is loaded. Returns
+
+- `type` type of control.
+- `control` control object.
