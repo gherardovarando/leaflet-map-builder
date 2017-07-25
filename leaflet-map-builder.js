@@ -79,12 +79,13 @@ if (L != undefined) {
      * @param {Object} map L.Map lealfet object
      */
     setMap: function(map) {
+      if (!map) return;
       if (map instanceof L.Map) {
         this.map = map;
         this.fire("set:map", map);
       } else {
         throw {
-          type: "map error",
+          type: "Map error, trying to bind a non L.Map object",
           map: map
         };
       }
@@ -141,7 +142,7 @@ if (L != undefined) {
 
     //clean the map
     clear: function() {
-      if (this.map) {
+      if (this.map instanceof L.Map) {
         this.map.eachLayer((layer) => {
           this.map.removeLayer(layer);
         });
@@ -159,7 +160,6 @@ if (L != undefined) {
           this.map.removeControl(this._controls.attribution);
         }
         this._removeMapListener();
-        //this.map.off();
       }
       this._drawnItems = null;
       this._indx = 0;
@@ -172,7 +172,7 @@ if (L != undefined) {
     },
 
     _removeMapListener: function() {
-      if (this.map) {
+      if (this.map instanceof L.Map) {
         this._eventsmap.map((ev) => {
           this.map.off(ev);
         });
@@ -226,11 +226,13 @@ if (L != undefined) {
 
     onMap: function(ev, cl) {
       this._eventsmap.push(ev);
-      this.map.on(ev, cl);
+      if (this.map instanceof L.Map) {
+        this.map.on(ev, cl);
+      }
     },
 
     offMap: function(ev) {
-      this.map.off(ev);
+      if (this.map instanceof L.Map) this.map.off(ev);
     },
 
     getDrawingColor: function() {
@@ -343,20 +345,22 @@ if (L != undefined) {
           layer.bindPopup(`${configuration.name}  <p>${configuration.details || ''}</p>`);
         }
 
-        if (this._controls.layers && where === this.map) {
-          if (configuration.baseLayer) {
-            if (!this._state.baseLayerOn) {
-              where.addLayer(layer);
-              this._state.baseLayerOn = true;
+        if (where && (typeof where.addLayer === 'function')) {
+          if (this._controls.layers && where === this.map) {
+            if (configuration.baseLayer) {
+              if (!this._state.baseLayerOn) {
+                where.addLayer(layer);
+                this._state.baseLayerOn = true;
+              }
+              this._controls.layers.addBaseLayer(layer, configuration.name);
+            } else {
+              this._controls.layers.addOverlay(layer, configuration.name);
             }
-            this._controls.layers.addBaseLayer(layer, configuration.name);
+          } else if (typeof this._options.controls.layers === 'function') {
+            this._options.controls.layers(layer, configuration, where);
           } else {
-            this._controls.layers.addOverlay(layer, configuration.name);
+            where.addLayer(layer);
           }
-        } else if (typeof this._options.controls.layers === 'function') {
-          this._options.controls.layers(layer, configuration, where);
-        } else {
-          where.addLayer(layer);
         }
         this.fire('load:layer', {
           layer: layer,
@@ -415,14 +419,14 @@ if (L != undefined) {
       }
       let drawControl = new L.Control.Draw(options);
       this._controls.draw = drawControl;
-      this.map.addControl(drawControl);
+      if (this.map instanceof L.Map) this.map.addControl(drawControl);
     },
 
     _addLayersControl: function() {
       if (typeof this._options.controls.layers === 'function') return; //external controls
       let options = Object.assign({}, this._options.controls.layers);
       this._controls.layers = L.control.layers(null, null, options);
-      this.map.addControl(this._controls.layers);
+      if (this.map instanceof L.Map) this.map.addControl(this._controls.layers);
       this.fire('load:control', {
         type: 'layers',
         control: this._controls.layers
@@ -432,7 +436,7 @@ if (L != undefined) {
     _addZoomControl: function() {
       let options = Object.assign({}, this._options.controls.zoom);
       this._controls.zoom = L.control.zoom(options);
-      this.map.addControl(this._controls.zoom);
+      if (this.map instanceof L.Map) this.map.addControl(this._controls.zoom);
       this.fire('load:control', {
         type: 'zoom',
         control: this._controls.zoom
@@ -442,7 +446,7 @@ if (L != undefined) {
     _addAttributionControl: function() {
       let options = Object.assign({}, this._options.controls.attribution);
       this._controls.attribution = L.control.attribution(options);
-      this.map.addControl(this._controls.attribution);
+      if (this.map instanceof L.Map) this.map.addControl(this._controls.attribution);
       this.fire('load:control', {
         type: 'attribution',
         control: this._controls.attribution
@@ -453,8 +457,8 @@ if (L != undefined) {
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
       configuration.layers = configuration.layers || {};
       let layer = L.featureGroup();
-      this.map.addLayer(layer);
       if (configuration.role === 'drawnItems') {
+        if (this.map instanceof L.Map) this.map.addLayer(layer);
         this._drawnItems = layer;
       }
       Object.keys(configuration.layers).map((key) => {
@@ -467,7 +471,7 @@ if (L != undefined) {
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
       configuration.layers = configuration.layers || {};
       let layer = L.featureGroup();
-      this.map.addLayer(layer);
+      //this.map.addLayer(layer);
       Object.keys(configuration.layers).map((key) => {
         this.loadLayer(configuration.layers[key], layer);
       });
@@ -501,26 +505,12 @@ if (L != undefined) {
       return layer;
     },
 
-    _loadPolyline: function(configuration, where) {
-      if (!where) {
-        if (this._drawnItems) {
-          where = this._drawnItems;
-        } else {
-          where = this.map;
-        }
-      }
+    _loadPolyline: function(configuration) {
       let layer = L.polyline(configuration.latlngs, configuration.options || {});
       return layer;
     },
 
-    _loadCircleMarker: function(configuration, where) {
-      if (!where) {
-        if (this._drawnItems) {
-          where = this._drawnItems;
-        } else {
-          where = this.map;
-        }
-      }
+    _loadCircleMarker: function(configuration) {
       let opt = Object.assign({
         radius: 10
       }, configuration.options);
@@ -534,14 +524,7 @@ if (L != undefined) {
       return layer;
     },
 
-    _loadMarker: function(configuration, where) {
-      if (!where) {
-        if (this._drawnItems) {
-          where = this._drawnItems;
-        } else {
-          where = this.map;
-        }
-      }
+    _loadMarker: function(configuration) {
       let opt = Object.assign({
         icon: {
           options: {}
@@ -552,7 +535,6 @@ if (L != undefined) {
       } else {
         opt.icon = L.icon(opt.icon.options);
       }
-
 
       let layer = L.marker(configuration.latlng ||
         configuration.latLng ||

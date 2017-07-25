@@ -35,7 +35,7 @@ It also supports the following controls:
 
 #### `L.mapBuilder(map, options, configuration)`
 
-- `map` leaflet map object, instance of `L.Map`
+- `map` leaflet map object, instance of `L.Map` (optional)
 - `options` options object (optional)
 - `configuration` configuration object (optional), it can be set in a second time with `setConfiguration` method.
 
@@ -300,7 +300,9 @@ Reload (clean and load) the map with the current options and configuration. That
 - `configuration` layer configuration object.
 - `where` (optional), L.Map object or L.Layer as a featureGroup or layerGroup (must have an .addLayer method)
 
-Load the layer specified by the `configuration` in `where` (or into the associated leaflet map).
+Returns `layer` the leaflet layer.
+
+Load the layer specified by the `configuration` in `where` (or into the associated leaflet `map`).
 
 ##### `onMap(event, cl)`
 
