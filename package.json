@@ -20,7 +20,7 @@
         "leaflet": "~1.0.2"
     },
     "author": "Gherardo Varando <gherardo.varando@gmail.com>",
-    "license": "GPL-3.0",
+    "license": "MIT",
     "bugs": {
         "url": "https://github.com/gherardovarando/leaflet-map-builder/issues"
     },
