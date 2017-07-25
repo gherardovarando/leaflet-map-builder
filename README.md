@@ -17,6 +17,8 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - polyline
 - marker
 - circleMarker
+- [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
+
 
 It also supports the following controls:
 
@@ -24,6 +26,8 @@ It also supports the following controls:
 - zoomControl
 - attributionControl
 - drawControl (via Leafelt.draw)
+
+###### If you want to add support for a particular layer or control just for the repository, implement the new layer appropriate method and (if you want) make a pull request.
 
 ## API
 
