@@ -4,7 +4,7 @@
 
 ## demo at <https://gherardovarando.github.io/leaflet-map-builder/>
 
-leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format. leaflet-map-builder can create:
+leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format. leaflet-map-builder can create the following type of layers:
 
 - tileLayer
 - tileLayerWMS
@@ -18,6 +18,7 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - marker
 - circleMarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
+- [tileLayerMultiSlice](https://github.com/gherardovarando/leaflet-multislice)
 
 
 It also supports the following controls:
