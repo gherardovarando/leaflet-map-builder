@@ -93,6 +93,7 @@ if (L != undefined) {
     },
 
 
+
     /**
      * parse the configuration object
      * @param  {Object, String} configuration
