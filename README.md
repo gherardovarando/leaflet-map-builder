@@ -1,6 +1,6 @@
 # Leaflet Map Builder
 
-## by gherardo.varando <gherardo.varando@gmail.com>
+## by gherardo.varando [gherardo.varando@gmail.com](mailto:gherardo.varando@gmail.com)
 
 ## demo at <https://gherardovarando.github.io/leaflet-map-builder/>
 
@@ -20,7 +20,6 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
 - [tileLayerMultiSlice](https://github.com/gherardovarando/leaflet-multislice)
 
-
 It also supports the following controls:
 
 - LayersControl
@@ -28,7 +27,7 @@ It also supports the following controls:
 - attributionControl
 - drawControl (via Leafelt.draw)
 
-###### If you want to add support for a particular layer or control just for the repository, implement the new layer appropriate method and (if you want) make a pull request.
+### If you want to add support for a particular layer or control just for the repository, implement the new layer appropriate method and (if you want) make a pull request.
 
 ## API
 
@@ -51,19 +50,23 @@ The option that can be passed on creation
   - `zoom` L.Control.Zoom options
   - `layers` L.Control.Layers options or a function `function(layer, configuration, where)`, if `null` or `false` the layers will be added to the map directly.
 
-- `tooltip` :
+- `tooltip` Define which objects will have an appended tooltip automatically set with content given by the `name` in the layer configuration object. Otherwise individually tooltip can be created with the `tooltip` field in the layer configuration object (see [Layer configuration](# Layer configuration) ).
 
   - `polygon` logical
   - `rectangle` logical
   - `polyline` logical
   - `circle` logical
+  - `marker` logical
+  - ....
 
-- `popup`
+- `popup` Define which objects will have an appended popup automatically set with content given by the fields `name` and `details` in the layer configuration object. Otherwise individually popup can be created with the `popup` field in the layer configuration object (see [Layer configuration](# Layer configuration) ).
 
   - `polygon` logical
   - `rectangle` logical
   - `polyline` logical
   - `circle` logical
+  - `marker` logical
+  - ....
 
 #### Configuration
 
@@ -78,9 +81,19 @@ The configuration object that defines the layers that will be added to the map.
 
 ##### Layer configuration
 
-- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circleMarker.
+- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circleMarker, csvTiles, tileLayerMultiSlice.
 - `name` String (optional).
 - `author` String (optional).
+- `details` String (optional).
+- `popup` String or object:
+
+  - `content` String the content of the popup
+  - `options` Object, popup options.
+
+- `tooltip` String or object:
+
+  - `content` String the content of the tooltip
+  - `options` Object, tooltip options.
 
 Depending on the type of layer:
 
@@ -102,6 +115,17 @@ Depending on the type of layer:
 - `baseLayer` Logical
 - `bounds` LatLng bounds
 - `options` ImageOverlay options
+
+###### tileLayerMultiSlice
+
+- `tileUrlTemplate` String
+- `baseLayer` Logical
+- `options` TileLayerMultiSlice options
+
+###### csvTile
+
+- `urlTemplate` String
+- `options` CsvTile options
 
 ###### featureGroup/layerGroup
 
@@ -138,6 +162,8 @@ Depending on the type of layer:
 - `options` CircleMarkerOptions
 
   ###### Example
+
+  You can try copy paste the following configuration in the demo page.
 
   ```
   {
@@ -235,6 +261,12 @@ Depending on the type of layer:
                         ]
                     ],
                     "name": "polygon_4",
+                    "tooltip": {
+                      "content": "I am a permanent tooltip",
+                      "options": {
+                        "permanent": true
+                      }
+                    },
                     "options": {
                         "color": "#ed8414",
                         "fillColor": "#ed8414"
@@ -258,6 +290,7 @@ Depending on the type of layer:
                         -20,
                         80
                     ],
+                    "popup": "That's a circle!",
                     "options": {
                         "radius": 3000000
                     }
@@ -356,20 +389,8 @@ The MIT License (MIT)
 
 Copyright (c) 2017 Gherardo Varando (gherardo.varando@gmail.com)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
