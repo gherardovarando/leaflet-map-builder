@@ -3,16 +3,16 @@
 
 <head>
 
-    <meta charset="utf-8">
+  <meta charset="utf-8">
 
-    <title>leaflet-map-builder</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+  <title>leaflet-map-builder</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
 
-    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
-    <script src="leaflet-map-builder.js"></script>
+  <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+  <script src="leaflet-map-builder.js"></script>
 
 
-    <script src="https://use.fontawesome.com/7aaa691cb0.js"></script>
+  <script src="https://use.fontawesome.com/7aaa691cb0.js"></script>
 
 
 
@@ -20,231 +20,271 @@
 </head>
 
 <body>
-    <table>
-        <tr>
-            <th>
-                <h2>
+  <table>
+    <tr>
+      <th>
+        <h2>
             Options
           </h2>
-            </th>
-            <th>
-            </th>
-            <th>
-                <button title="reload" type='button' onclick="builder.reload();"><i class='fa fa-refresh fa-2x'></i></button>
-                <button title="clear" type='button' onclick="builder.clear();"><i class='fa fa-eraser fa-2x'></i></button>
-            </th>
-            <th>
-            </th>
-            <th>
-                <h2>
+      </th>
+      <th>
+      </th>
+      <th>
+        <button title="reload" type='button' onclick="builder.reload();"><i class='fa fa-refresh fa-2x'></i></button>
+        <button title="clear" type='button' onclick="builder.clear();"><i class='fa fa-eraser fa-2x'></i></button>
+      </th>
+      <th>
+      </th>
+      <th>
+        <h2>
             Configuration
           </h2>
-            </th>
-        </tr>
-        <tr>
-            <th>
-                <textarea id='options' type='text' style="display:none; color:orange; background-color:black; width:250px; height: 500px; display:inline"></textarea>
-            </th>
-            <th>
-                <p><button title="set options" type='button' onclick="builder.setOptions(JSON.parse(document.getElementById('options').value));"><i class='fa fa-angle-double-right fa-2x'></i></button></p>
-            </th>
-            <th>
-                <div style="text-align:left; width:30%">
-                    <div id="map" style="height:400px; width: 400px;"></div>
-                </div>
-            </th>
-            <th>
-                <p><button title="set configuration" type='button' onclick="builder.setConfiguration(document.getElementById('configuration').value);"><i class='fa fa-angle-double-left fa-2x'></i></button></p>
+      </th>
+    </tr>
+    <tr>
+      <th>
+        <textarea id='options' type='text' style="display:none; color:orange; background-color:black; width:250px; height: 500px; display:inline"></textarea>
+      </th>
+      <th>
+        <p><button title="set options" type='button' onclick="builder.setOptions(JSON.parse(document.getElementById('options').value));"><i class='fa fa-angle-double-right fa-2x'></i></button></p>
+      </th>
+      <th>
+        <div style="text-align:left; width:30%">
+          <div id="map" style="height:400px; width: 400px;"></div>
+        </div>
+      </th>
+      <th>
+        <p><button title="set configuration" type='button' onclick="builder.setConfiguration(document.getElementById('configuration').value);"><i class='fa fa-angle-double-left fa-2x'></i></button></p>
 
-            </th>
-            <th>
+      </th>
+      <th>
 
-                <textarea id='configuration' type='text' style="color:orange; background-color:black; width:400px; height: 500px; display:inline"></textarea>
-            </th>
-        </tr>
+        <textarea id='configuration' type='text' style="color:orange; background-color:black; width:400px; height: 500px; display:inline"></textarea>
+      </th>
+    </tr>
+    <tr>
+      <th>
+      </th>
+      <th>
+      </th>
+      <th>
+        <h2>
+        Events Fired
+      </h2>
+      <p> (More recent events on top)</p>
+        <textarea id='events' type='text' style="color:orange; background-color:black; width:400px; height: 500px; display:inline"></textarea>
+      </th>
+
+    </tr>
 
 
-    </table>
+  </table>
 </body>
 
 
 <script>
-    var configuration = {
-        type: 'map',
+  var configuration = {
+    type: 'map',
+    layers: {
+      2: {
+        name: 'cartoDb-base',
+        type: 'tileLayer',
+        tileUrlTemplate: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
+        baseLayer: true,
+        options: {
+          tileSize: 256,
+          maxZoom: 18,
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
+        }
+      },
+      a: {
+        name: 'OpenStreetMap',
+        type: 'tileLayer',
+        tileUrlTemplate: 'http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        baseLayer: true,
+        options: {
+          tileSize: 256,
+          noWrap: true,
+          attribution: '&copy;<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }
+      },
+      b: {
+        name: 'Stamen Watercolor',
+        type: 'imageOverlay',
+        imageUrl: 'http://c.tile.stamen.com/watercolor/0/0/0.jpg',
+        options: {
+          attribution: '&copy; stamen',
+          bounds: [
+            [360, 180],
+            [-360, -180]
+          ],
+          opacity: 0.4
+        }
+      },
+      'karona': {
+        name: 'korona.geog.uni-heidelberg',
+        type: 'tileLayer',
+        tileUrlTemplate: 'http://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}',
+        baseLayer: true,
+        options: {
+          tileSize: 256,
+          maxZoom: 18,
+          noWrap: true
+        }
+      },
+      c: {
+        type: 'polygon',
+        latlngs: [
+          [0, 0],
+          [10, 34],
+          [56, 78],
+          [0, 0]
+        ],
+        details: '',
+        name: 'random polygon',
+        options: {
+          color: "green",
+          fillColor: "white",
+          opacity: 1,
+          fillOpacity: 0.8
+        }
+      },
+      e: {
+        name: "bottom-left",
+        type: 'marker',
+        details: 'lat: -360, lng: -180',
+        latlng: [-360, -180]
+      },
+      f: {
+        name: "top-right",
+        type: 'marker',
+        details: 'lat: 360, lng: 180',
+        latlng: [360, 180]
+      },
+      group: {
+        name: 'some markers',
+        type: 'layerGroup',
         layers: {
-            2: {
-                name: 'cartoDb-base',
-                type: 'tileLayer',
-                tileUrlTemplate: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
-                baseLayer: true,
-                options: {
-                    tileSize: 256,
-                    maxZoom: 18,
-                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
-                }
-            },
-            a: {
-                name: 'OpenStreetMap',
-                type: 'tileLayer',
-                tileUrlTemplate: 'http://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                baseLayer: true,
-                options: {
-                    tileSize: 256,
-                    noWrap: true,
-                    attribution: '&copy;<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                }
-            },
-            b: {
-                name: 'Stamen Watercolor',
-                type: 'imageOverlay',
-                imageUrl: 'http://c.tile.stamen.com/watercolor/0/0/0.jpg',
-                options: {
-                    attribution: '&copy; stamen',
-                    bounds: [
-                        [360, 180],
-                        [-360, -180]
-                    ],
-                    opacity: 0.4
-                }
-            },
-            'karona': {
-                name: 'korona.geog.uni-heidelberg',
-                type: 'tileLayer',
-                tileUrlTemplate: 'http://korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}',
-                baseLayer: true,
-                options: {
-                    tileSize: 256,
-                    maxZoom: 18,
-                    noWrap: true
-                }
-            },
-            c: {
-                type: 'polygon',
-                latlngs: [
-                    [0, 0],
-                    [10, 34],
-                    [56, 78],
-                    [0, 0]
-                ],
-                details: '',
-                name: 'random polygon',
-                options: {
-                    color: "green",
-                    fillColor: "white",
-                    opacity: 1,
-                    fillOpacity: 0.8
-                }
-            },
-            e: {
-                name: "bottom-left",
-                type: 'marker',
-                details: 'lat: -360, lng: -180',
-                latlng: [-360, -180]
-            },
-            f: {
-                name: "top-right",
-                type: 'marker',
-                details: 'lat: 360, lng: 180',
-                latlng: [360, 180]
-            },
-            group: {
-                name: 'some markers',
-                type: 'layerGroup',
-                layers: {
-                    '1': {
-                        type: 'marker',
-                        latlng: [10, 7]
-                    },
-                    '2': {
-                        type: 'marker',
-                        latlng: [56, 89]
-                    },
-                    '3': {
-                        type: 'marker',
-                        latlng: [-45, 5]
-                    }
-                }
-            },
-            featgr: {
-                name: 'some shapes',
-                type: 'featureGroup',
-                layers: {
-                    1: {
-                        type: 'polygon',
-                        latlngs: [
-                            [34, -10],
-                            [7, 9],
-                            [19, -54],
-                            [78, -90]
-                        ]
-                    },
-                    2: {
-                        type: 'polygon',
-                        latlngs: [
-                            [70, 123],
-                            [104, 115],
-                            [88, 140],
-                            [60, 110]
-                        ]
-                    },
-                    circ: {
-                        name: "circle",
-                        type: "circle",
-                        latlng: [0, 0],
-                        options: {
-                            "radius": 200000
-                        }
-                    },
-                    circ2: {
-                        name: "circle",
-                        type: "circle",
-                        latlng: [-20, 80],
-                        options: {
-                            "radius": 3000000
-                        }
-                    },
-
-                }
-            }
+          '1': {
+            type: 'marker',
+            latlng: [10, 7]
+          },
+          '2': {
+            type: 'marker',
+            latlng: [56, 89]
+          },
+          '3': {
+            type: 'marker',
+            latlng: [-45, 5]
+          }
         }
-    };
-
-
-
-    var options = {
-        controls: {
-            zoom: true,
-            layers: {
-                autoZIndex: false,
-                sortLayers: false
-            },
-            attribution: {
-                prefix: "<a href= 'https://github.com/gherardovarando/leaflet-map-builder'> leaflet-map-builder</a>"
+      },
+      featgr: {
+        name: 'some shapes',
+        type: 'featureGroup',
+        layers: {
+          1: {
+            type: 'polygon',
+            latlngs: [
+              [34, -10],
+              [7, 9],
+              [19, -54],
+              [78, -90]
+            ]
+          },
+          2: {
+            type: 'polygon',
+            latlngs: [
+              [70, 123],
+              [104, 115],
+              [88, 140],
+              [60, 110]
+            ]
+          },
+          circ: {
+            name: "circle",
+            type: "circle",
+            latlng: [0, 0],
+            options: {
+              "radius": 200000
             }
-        },
-        tooltip: {
-            marker: true,
-            polyline: true,
-            polygon: true,
-            circle: true,
-            rectangle: false
-        },
-        popup: {
-            marker: true,
-            polyline: false,
-            polygon: false,
-            circle: true,
-            rectangle: false
-        }
-    };
+          },
+          circ2: {
+            name: "circle",
+            type: "circle",
+            latlng: [-20, 80],
+            options: {
+              "radius": 3000000
+            }
+          },
 
-    var map = L.map('map', {
-        zoomControl: false, //use the builder to put controls
-        attributionControl: false //use the builder to put controls
-    });
-    document.getElementById('configuration').value = JSON.stringify(configuration, null, 4);
-    document.getElementById('options').value = JSON.stringify(options, null, 4);
-    var builder = L.mapBuilder(map, options, configuration);
+        }
+      }
+    }
+  };
+
+
+
+  var options = {
+    controls: {
+      zoom: true,
+      layers: {
+        autoZIndex: false,
+        sortLayers: false
+      },
+      attribution: {
+        prefix: "<a href= 'https://github.com/gherardovarando/leaflet-map-builder'> leaflet-map-builder</a>"
+      }
+    },
+    tooltip: {
+      marker: true,
+      polyline: true,
+      polygon: true,
+      circle: true,
+      rectangle: false
+    },
+    popup: {
+      marker: true,
+      polyline: false,
+      polygon: false,
+      circle: true,
+      rectangle: false
+    }
+  };
+
+  var map = L.map('map', {
+    zoomControl: false, //use the builder to put controls
+    attributionControl: false //use the builder to put controls
+  });
+  document.getElementById('configuration').value = JSON.stringify(configuration, null, 4);
+  document.getElementById('options').value = JSON.stringify(options, null, 4);
+  var builder = L.mapBuilder();
+  var ev = document.getElementById('events');
+  ev.value = '';
+  builder.on('clear', () => {
+    ev.value = 'CLEAR \n \n' + ev.value;
+  });
+  builder.on('reload', () => {
+    ev.value = 'RELOAD \n \n'+ ev.value;
+  });
+  builder.on('set:map', () => {
+    ev.value = 'SET:MAP \n \n'+ ev.value;
+  });
+  builder.on('set:options', () => {
+    ev.value = 'SET:OPTIONS \n \n'+ ev.value;
+  });
+  builder.on('set:configuration', () => {
+    ev.value = 'SET:CONFIGURATION \n \n'+ ev.value;
+  });
+  builder.on('load:layer', (e) => {
+   ev.value = ('LOAD:LAYER  \n   type = ' + e.configuration.type + '  name = ' + e.configuration.name +' \n \n')+ ev.value;
+  });
+  builder.on('load:control', (e) => {
+    ev.value = ('LOAD:CONTROL \n   type = ' + e.controlType +' \n \n')+ ev.value;
+  });
+  builder.setMap(map);
+  builder.setOptions(options)
+  builder.setConfiguration(configuration);
 </script>
 
 
