@@ -27,7 +27,7 @@ It also supports the following controls:
 - attributionControl
 - drawControl (via Leafelt.draw)
 
-### If you want to add support for a particular layer or control just for the repository, implement the new layer appropriate method and (if you want) make a pull request.
+### If you want to add support for a particular layer or control just fork the repository, implement the new layer appropriate method and (if you want) make a pull request.
 
 ## API
 
