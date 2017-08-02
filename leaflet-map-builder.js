@@ -432,7 +432,7 @@ if (L != undefined) {
       this._controls.layers = L.control.layers(null, null, options);
       if (this.map instanceof L.Map) this.map.addControl(this._controls.layers);
       this.fire('load:control', {
-        type: 'layers',
+        controlType: 'layers',
         control: this._controls.layers
       });
     },
@@ -442,7 +442,7 @@ if (L != undefined) {
       this._controls.zoom = L.control.zoom(options);
       if (this.map instanceof L.Map) this.map.addControl(this._controls.zoom);
       this.fire('load:control', {
-        type: 'zoom',
+        controlType: 'zoom',
         control: this._controls.zoom
       });
     },
@@ -452,7 +452,7 @@ if (L != undefined) {
       this._controls.attribution = L.control.attribution(options);
       if (this.map instanceof L.Map) this.map.addControl(this._controls.attribution);
       this.fire('load:control', {
-        type: 'attribution',
+        controlType: 'attribution',
         control: this._controls.attribution
       });
     },

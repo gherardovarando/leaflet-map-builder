@@ -380,7 +380,7 @@ Emitted when a layer is loaded. Returns
 
 Emitted when a control is loaded. Returns
 
-- `type` type of control.
+- `controlType` type of control.
 - `control` control object.
 
 ### LICENSE
