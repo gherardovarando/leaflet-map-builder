@@ -18,7 +18,6 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - marker
 - circleMarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
-- [tileLayerMultiSlice](https://github.com/gherardovarando/leaflet-multislice)
 
 It also supports the following controls:
 
@@ -116,11 +115,6 @@ Depending on the type of layer:
 - `bounds` LatLng bounds
 - `options` ImageOverlay options
 
-###### tileLayerMultiSlice
-
-- `tileUrlTemplate` String
-- `baseLayer` Logical
-- `options` TileLayerMultiSlice options
 
 ###### csvTile
 
