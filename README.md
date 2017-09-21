@@ -19,6 +19,8 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - circleMarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
 
+It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/), currently supporting tileLayer.ml through the `multiLevel` option (See [tileLayer](#tilelayer)).
+
 It also supports the following controls:
 
 - LayersControl
@@ -49,7 +51,7 @@ The option that can be passed on creation
   - `zoom` L.Control.Zoom options
   - `layers` L.Control.Layers options or a function `function(layer, configuration, where)`, if `null` or `false` the layers will be added to the map directly.
 
-- `tooltip` Define which objects will have an appended tooltip automatically set with content given by the `name` in the layer configuration object. Otherwise individually tooltip can be created with the `tooltip` field in the layer configuration object (see [Layer configuration](# Layer configuration) ).
+- `tooltip` Define which objects will have an appended tooltip automatically set with content given by the `name` in the layer configuration object. Otherwise individually tooltip can be created with the `tooltip` field in the layer configuration object (see [Layer configuration](#layer-configuration) ).
 
   - `polygon` logical
   - `rectangle` logical
@@ -58,7 +60,7 @@ The option that can be passed on creation
   - `marker` logical
   - ....
 
-- `popup` Define which objects will have an appended popup automatically set with content given by the fields `name` and `details` in the layer configuration object. Otherwise individually popup can be created with the `popup` field in the layer configuration object (see [Layer configuration](# Layer configuration) ).
+- `popup` Define which objects will have an appended popup automatically set with content given by the fields `name` and `details` in the layer configuration object. Otherwise individually popup can be created with the `popup` field in the layer configuration object (see [Layer configuration](#layer-configuration) ).
 
   - `polygon` logical
   - `rectangle` logical
@@ -114,7 +116,6 @@ Depending on the type of layer:
 - `baseLayer` Logical
 - `bounds` LatLng bounds
 - `options` ImageOverlay options
-
 
 ###### csvTile
 
