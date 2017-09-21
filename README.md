@@ -19,7 +19,7 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - circleMarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
 
-It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/), currently supporting tileLayer.ml through the `multiLevel` option (See [tileLayer](#tilelayer)).
+It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/),  through the `multiLevel` option in layer configuration (see [Layer configuration](#layer-configuration)).
 
 It also supports the following controls:
 
@@ -51,7 +51,7 @@ The option that can be passed on creation
   - `zoom` L.Control.Zoom options
   - `layers` L.Control.Layers options or a function `function(layer, configuration, where)`, if `null` or `false` the layers will be added to the map directly.
 
-- `tooltip` Define which objects will have an appended tooltip automatically set with content given by the `name` in the layer configuration object. Otherwise individually tooltip can be created with the `tooltip` field in the layer configuration object (see [Layer configuration](#layer-configuration) ).
+- `tooltip` Define which objects will have an appended tooltip automatically set with content given by the `name` in the layer configuration object. Otherwise individually tooltip can be created with the `tooltip` field in the layer configuration object (see [Layer configuration](#layer-configuration)).
 
   - `polygon` logical
   - `rectangle` logical
@@ -60,7 +60,7 @@ The option that can be passed on creation
   - `marker` logical
   - ....
 
-- `popup` Define which objects will have an appended popup automatically set with content given by the fields `name` and `details` in the layer configuration object. Otherwise individually popup can be created with the `popup` field in the layer configuration object (see [Layer configuration](#layer-configuration) ).
+- `popup` Define which objects will have an appended popup automatically set with content given by the fields `name` and `details` in the layer configuration object. Otherwise individually popup can be created with the `popup` field in the layer configuration object (see [Layer configuration](#layer-configuration)).
 
   - `polygon` logical
   - `rectangle` logical
@@ -76,7 +76,7 @@ The configuration object that defines the layers that will be added to the map.
 - `type`, String equal to `map` otherwise the configuration will not be loaded.
 - `name`, String (optional).
 - `authors`, String (optional).
-- `layers`, layer configuration object (optional).
+- `layers`, array or object of layer configuration objects (optional).
 - `center`, Array (optional), where the map has to be centered on loading.
 - `zoom`, Integer (optional), zoom to be set in loading.
 
@@ -86,6 +86,7 @@ The configuration object that defines the layers that will be added to the map.
 - `name` String (optional).
 - `author` String (optional).
 - `details` String (optional).
+- `multiLevel` Logical
 - `popup` String or object:
 
   - `content` String the content of the popup
@@ -96,7 +97,7 @@ The configuration object that defines the layers that will be added to the map.
   - `content` String the content of the tooltip
   - `options` Object, tooltip options.
 
-Depending on the type of layer:
+Plus, other layer-dependent options:
 
 ###### tileLayer
 
