@@ -86,7 +86,7 @@ The configuration object that defines the layers that will be added to the map.
 - `name` String (optional).
 - `author` String (optional).
 - `details` String (optional).
-- `multiLevel` Logical
+- `multiLevel` Logical, use the multiLevel (``.ml``) verison of the type of layer.
 - `popup` String or object:
 
   - `content` String the content of the popup
