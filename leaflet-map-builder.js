@@ -40,6 +40,7 @@ if (L != undefined) {
       baseLayerOn: false
     },
     _options: {
+      loading: () => {},
       drawingColor: "#ed8414",
       controls: {
         draw: false, // logical, options of configuration
@@ -191,15 +192,19 @@ if (L != undefined) {
         if (this._options.controls.attribution) {
           this._addAttributionControl();
         }
+        let i = 0;
+        let tot = Object.keys(this._configuration.layers).length;
         //load all the layers
         if (this._configuration.layers) {
           if (this._configuration.layers instanceof Array) {
             this._configuration.layers.map((layer, key) => {
               this.loadLayer(layer, this.map);
+              this._options.loading(i++, tot);
             });
           } else { //we assume is an object
             Object.keys(this._configuration.layers).map((key) => {
               this.loadLayer(this._configuration.layers[key], this.map);
+              this._options.loading(i++, tot);
             });
           }
 
@@ -286,6 +291,7 @@ if (L != undefined) {
       if (!where || (!where instanceof L.LayerGroup)) {
         where = this.map;
       }
+      console.log(configuration.type);
       switch (configuration.type) {
         case 'tileLayer':
           layer = this._loadTileLayer(configuration, where);
@@ -304,6 +310,9 @@ if (L != undefined) {
           break;
         case 'marker':
           layer = this._loadMarker(configuration, where);
+          break;
+        case 'circlemarker':
+          layer = this._loadCircleMarker(configuration, where);
           break;
         case 'circleMarker':
           layer = this._loadCircleMarker(configuration, where);
@@ -335,6 +344,7 @@ if (L != undefined) {
 
       if (layer) {
         layer._id = configuration._id;
+        layer._configuration = configuration;
         if (configuration.tooltip) {
           layer.bindTooltip(configuration.tooltip.content || configuration.tooltip, configuration.tooltip.options);
         } else if (this._options.tooltip[configuration.type]) {
@@ -512,6 +522,7 @@ if (L != undefined) {
     },
 
     _loadCircleMarker: function(configuration) {
+      console.log(configuration);
       let opt = Object.assign({
         radius: 10
       }, configuration.options);
@@ -521,7 +532,7 @@ if (L != undefined) {
         configuration.point ||
         configuration.coordinate ||
         configuration.coord || [configuration.lat || configuration.y, configuration.lang || configuration.x], opt);
-
+      
       return layer;
     },
 
@@ -677,9 +688,9 @@ if (L != undefined) {
         }
 
         let layer;
-        if (configuration.multiLevel && (typeof L.tileLayer.ml === 'function')){
+        if (configuration.multiLevel && (typeof L.tileLayer.ml === 'function')) {
           layer = L.tileLayer.ml(this._joinBasePath(configuration.tileUrlTemplate), options);
-        }else{
+        } else {
           layer = L.tileLayer(this._joinBasePath(configuration.tileUrlTemplate), options);
         }
         return layer;
