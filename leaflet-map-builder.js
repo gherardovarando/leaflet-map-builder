@@ -170,6 +170,7 @@ if (L != undefined) {
       this._eventsmap = [];
       this._state.baseLayerOn = false;
       this._activeBaseLayer = null;
+      this._guides = [];
       this.fire('clear');
     },
 
@@ -242,14 +243,13 @@ if (L != undefined) {
     },
 
 
+
+
     loadLayer: function(configuration, where) {
       if (!configuration) return;
       configuration._id = this._indx++;
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
-      configuration.options = configuration.options || {
-        color: this.getDrawingColor(),
-        fillColor: this.getDrawingColor()
-      };
+      configuration.options = configuration.options || {};
       let layer;
       if (!where || (!where instanceof L.LayerGroup)) {
         where = this.map;
@@ -305,17 +305,34 @@ if (L != undefined) {
       if (layer) {
         layer._id = configuration._id;
         layer._configuration = configuration;
+
+        //tooltip
         if (configuration.tooltip) {
           layer.bindTooltip(configuration.tooltip.content || configuration.tooltip, configuration.tooltip.options);
         } else if (this._options.tooltip[configuration.type]) {
           layer.bindTooltip(configuration.name);
         }
+        //popup
         if (configuration.popup) {
           layer.bindPopup(configuration.popup.content || configuration.popup, configuration.popup.options);
         } else if (this._options.popup[configuration.type]) {
           layer.bindPopup(`${configuration.name}  <p>${configuration.details || ''}</p>`);
         }
 
+        //guide role
+        if (typeof configuration.role === 'string' && configuration.role.includes('guide')) {
+          layer.on("add", () => {
+            this._guides.push(layer);
+            this._updateGuides();
+          });
+          layer.on("remove", () => {
+            this._guides.splice(this._guides.indexOf(layer), 1);
+            this._updateGuides();
+          });
+        }
+
+
+        //add the layer to something
         if (where && (typeof where.addLayer === 'function')) {
           if (this._controls.layers && where === this.map) {
             if (configuration.baseLayer) {
@@ -334,36 +351,8 @@ if (L != undefined) {
           }
         }
 
-        if (typeof configuration.role === 'string' && configuration.role.includes('guide')) {
-          layer.on("add", () => {
-            if (this._controls.draw) {
-              this._guides.push(layer);
-              this._controls.draw.setDrawingOptions({
-                polyline: {
-                  guideLayers: this._guides,
-                  snapDistance: this._options.controls.draw.polyline.snapDistance || 5
-                },
-                polygon: {
-                  guideLayers: this._guides,
-                  snapDistance: this._options.controls.draw.polygon.snapDistance || 5
-                }
-              });
-            }
-          });
-          layer.on("remove", () => {
-            if (this._controls.draw) {
-              this._guides.slice(this._guides.indexOf(layer), 1);
-              this._controls.draw.setDrawingOptions({
-                polyline: {
-                  guideLayers: this._guides
-                },
-                polygon: {
-                  guideLayers: this._guides
-                }
-              });
-            }
-          });
-        }
+
+        //fire the event
         this.fire('load:layer', {
           layer: layer,
           configuration: configuration,
@@ -390,6 +379,23 @@ if (L != undefined) {
       });
     },
 
+
+    _updateGuides: function() {
+      let options = {
+      };
+      let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
+      keys.map((tag) => {
+        if (this._options.controls && this._options.controls.draw && this._options.controls.draw[tag]) {
+          options[tag] = {
+            guideLayers: this._guides
+          }
+        }
+      });
+      if (this._controls.draw) {
+        this._controls.draw.setDrawingOptions(options);
+      }
+    },
+
     _addDrawControl: function() {
       if (!L.Control.Draw) return;
       if (!this._drawnItems) this._addDrawnItems();
@@ -402,14 +408,12 @@ if (L != undefined) {
         if (options.draw) {
           options.draw = Object.assign({}, options.draw);
         }
-        ['polyline', 'polygon', 'rectangle', 'circle'].map((t) => {
-          if (options.draw[t]) {
-            options.draw[t] = Object.assign({
-              shapeOptions: {
-                color: this.getDrawingColor(),
-                fillColor: this.getDrawingColor()
-              }
-            }, options.draw[t]);
+        let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
+        keys.map((tag) => {
+          if (options.draw[tag]) {
+            options.draw[tag] = Object.assign({
+              guideLayers: this._guides
+            }, options.draw[tag]);
           }
         });
         if (options.edit) {
@@ -422,6 +426,11 @@ if (L != undefined) {
       let drawControl = new L.Control.Draw(options);
       this._controls.draw = drawControl;
       if (this.map instanceof L.Map) this.map.addControl(drawControl);
+      this.fire('load:control', {
+        controlType: 'draw',
+        control: this._controls.draw,
+        featureGroup: this._drawnItems
+      })
     },
 
     _addLayersControl: function() {
@@ -460,7 +469,6 @@ if (L != undefined) {
       configuration.layers = configuration.layers || {};
       let layer = L.featureGroup();
       if (typeof configuration.role === 'string' && configuration.role.includes('drawnItems')) {
-        if (this.map instanceof L.Map) this.map.addLayer(layer);
         this._drawnItems = layer;
       }
       Object.keys(configuration.layers).map((key) => {
@@ -561,8 +569,6 @@ if (L != undefined) {
         let scale = configuration.scale || 1;
         let size = (configuration.size || 256);
         let opt = Object.assign({
-          color: this.getDrawingColor(),
-          fillColor: this.getDrawingColor(),
           radius: 4
         }, configuration);
         Object.assign(opt, configuration.options);
