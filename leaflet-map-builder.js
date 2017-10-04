@@ -380,10 +380,11 @@ if (L != undefined) {
     },
 
 
-    _updateGuides: function() {
+    _updateGuides: function(guides) {
+      if (guides && guides.length >= 0) this._guides = guides;
       let options = {
       };
-      let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
+      let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circleMarker'];
       keys.map((tag) => {
         if (this._options.controls && this._options.controls.draw && this._options.controls.draw[tag]) {
           options[tag] = {
@@ -408,7 +409,7 @@ if (L != undefined) {
         if (options.draw) {
           options.draw = Object.assign({}, options.draw);
         }
-        let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
+        let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circleMarker'];
         keys.map((tag) => {
           if (options.draw[tag]) {
             options.draw[tag] = Object.assign({
