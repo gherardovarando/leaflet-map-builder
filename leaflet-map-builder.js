@@ -35,13 +35,13 @@ if (L != undefined) {
     _eventsmap: [],
     _layers: {},
     _controls: {},
+    _guides: [],
     _activeBaseLayer: null,
     _state: {
       baseLayerOn: false
     },
     _options: {
       loading: () => {},
-      drawingColor: "#ed8414",
       controls: {
         draw: false, // logical, options of configuration
         zoom: false, // logical, options of configuration
@@ -106,7 +106,7 @@ if (L != undefined) {
       }
       configuration.type = configuration.type || 'undefined';
       configuration.basePath = configuration.basePath || '';
-      if (configuration.type.includes("map")) {
+      if (typeof configuration.type === 'string' && configuration.type.includes("map")) {
         return Object.assign({
           layers: {}
         }, configuration);
@@ -241,43 +241,6 @@ if (L != undefined) {
       if (this.map instanceof L.Map) this.map.off(ev);
     },
 
-    getDrawingColor: function() {
-      if (typeof this._drawingColor === 'string') return this._drawingColor;
-      return "#ed8414";
-    },
-
-    setDrawingColor: function(color) {
-      if (typeof color === 'string') this._drawingColor = color;
-      if (this._controls.draw) {
-        this._controls.draw.setDrawingOptions({
-          polygon: {
-            shapeOptions: {
-              color: color,
-              fillColor: color
-            }
-          },
-          rectangle: {
-            shapeOptions: {
-              color: color,
-              fillColor: color
-            }
-          },
-          circle: {
-            shapeOptions: {
-              color: color,
-              fillColor: color
-            }
-          },
-          polyline: {
-            shapeOptions: {
-              color: color,
-              fillColor: color
-            }
-          }
-        });
-      }
-    },
-
 
     loadLayer: function(configuration, where) {
       if (!configuration) return;
@@ -291,9 +254,9 @@ if (L != undefined) {
       if (!where || (!where instanceof L.LayerGroup)) {
         where = this.map;
       }
-      console.log(configuration.type);
-      switch (configuration.type) {
-        case 'tileLayer':
+      if (configuration.multiLevel && !this.map.options.multilevel) return;
+      switch (configuration.type.toLowerCase()) {
+        case 'tilelayer':
           layer = this._loadTileLayer(configuration, where);
           break;
         case 'polygon':
@@ -314,28 +277,25 @@ if (L != undefined) {
         case 'circlemarker':
           layer = this._loadCircleMarker(configuration, where);
           break;
-        case 'circleMarker':
-          layer = this._loadCircleMarker(configuration, where);
-          break;
-        case 'guideLayer':
+        case 'guidelayer':
           layer = this._loadGuideLayer(configuration, where);
           break;
-        case 'imageOverlay':
+        case 'imageoverlay':
           layer = this._loadImageOverlay(configuration, where);
           break;
-        case 'imageLayer':
+        case 'imagelayer':
           layer = this._loadImageOverlay(configuration, where);
           break;
-        case 'featureGroup':
+        case 'featuregroup':
           layer = this._loadFeatureGroup(configuration, where);
           break;
-        case 'layerGroup':
+        case 'layergroup':
           layer = this._loadLayerGroup(configuration, where);
           break;
-        case 'tileLayerWMS':
+        case 'tilelayerwms':
           layer = this._loadTileLayerWMS(configuration, where);
           break;
-        case 'csvTiles':
+        case 'csvtiles':
           layer = this._loadCsvTiles(configuration, where);
           break;
         default:
@@ -373,6 +333,37 @@ if (L != undefined) {
             where.addLayer(layer);
           }
         }
+
+        if (typeof configuration.role === 'string' && configuration.role.includes('guide')) {
+          layer.on("add", () => {
+            if (this._controls.draw) {
+              this._guides.push(layer);
+              this._controls.draw.setDrawingOptions({
+                polyline: {
+                  guideLayers: this._guides,
+                  snapDistance: this._options.controls.draw.polyline.snapDistance || 5
+                },
+                polygon: {
+                  guideLayers: this._guides,
+                  snapDistance: this._options.controls.draw.polygon.snapDistance || 5
+                }
+              });
+            }
+          });
+          layer.on("remove", () => {
+            if (this._controls.draw) {
+              this._guides.slice(this._guides.indexOf(layer), 1);
+              this._controls.draw.setDrawingOptions({
+                polyline: {
+                  guideLayers: this._guides
+                },
+                polygon: {
+                  guideLayers: this._guides
+                }
+              });
+            }
+          });
+        }
         this.fire('load:layer', {
           layer: layer,
           configuration: configuration,
@@ -396,7 +387,7 @@ if (L != undefined) {
           type: 'featureGroup',
           layers: {}
         }
-      })
+      });
     },
 
     _addDrawControl: function() {
@@ -468,7 +459,7 @@ if (L != undefined) {
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
       configuration.layers = configuration.layers || {};
       let layer = L.featureGroup();
-      if (configuration.role === 'drawnItems') {
+      if (typeof configuration.role === 'string' && configuration.role.includes('drawnItems')) {
         if (this.map instanceof L.Map) this.map.addLayer(layer);
         this._drawnItems = layer;
       }
@@ -522,7 +513,6 @@ if (L != undefined) {
     },
 
     _loadCircleMarker: function(configuration) {
-      console.log(configuration);
       let opt = Object.assign({
         radius: 10
       }, configuration.options);
@@ -532,7 +522,7 @@ if (L != undefined) {
         configuration.point ||
         configuration.coordinate ||
         configuration.coord || [configuration.lat || configuration.y, configuration.lang || configuration.x], opt);
-      
+
       return layer;
     },
 
@@ -562,38 +552,8 @@ if (L != undefined) {
 
     _loadGuideLayer: function(configuration) {
       let guideLayer = L.featureGroup();
-      guideLayer.on("add", () => {
-        if (this._controls.draw) {
-          this._controls.draw.setDrawingOptions({
-            polyline: {
-              guideLayers: [guideLayer]
-            },
-            polygon: {
-              guideLayers: [guideLayer],
-              snapDistance: 5
-            },
-            rectangle: {
-              guideLayers: [guideLayer],
-              snapDistance: 5
-            }
-          });
-        }
-      });
-      guideLayer.on("remove", () => {
-        if (this._controls.draw) {
-          this._controls.draw.setDrawingOptions({
-            polyline: {
-              guideLayers: null
-            },
-            polygon: {
-              guideLayers: null
-            },
-            rectangle: {
-              guideLayers: null
-            }
-          });
-        }
-      });
+      configuration.role = 'guide';
+
 
       if (configuration.points) {
 

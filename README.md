@@ -26,7 +26,7 @@ It also supports the following controls:
 - LayersControl
 - zoomControl
 - attributionControl
-- drawControl (via Leafelt.draw)
+- drawControl (via Leafelt.draw and works well with leaflet.snap)  
 
 ### If you want to add support for a particular layer or control just fork the repository, implement the new layer appropriate method and (if you want) make a pull request.
 
@@ -84,6 +84,9 @@ The configuration object that defines the layers that will be added to the map.
 
 - `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circleMarker, csvTiles, tileLayerMultiSlice.
 - `name` String (optional).
+- `role` String (optional), a string of type `role1 role2 role3` where each role can be one of the following:
+  - `drawnItems` for featureGroup type layers it indicates that the given layer has to be used as the featureGroup for editing in the drawControl.
+  - `guide` the given layer will be used as snap guideLayer, works for polygon, polyline, rectangle, marker, circleMarker, featureGroup, layerGroup.
 - `author` String (optional).
 - `details` String (optional).
 - `multiLevel` Logical, use the multiLevel (``.ml``) verison of the type of layer.
@@ -341,10 +344,6 @@ Register event on map, events registered by this method are cleared on `clear` m
 ##### `offMap(event)`
 
 Unregister a map event.
-
-##### `setDrawingColor(color)`
-
-##### `getDrawingColor()`
 
 #### Events
 
