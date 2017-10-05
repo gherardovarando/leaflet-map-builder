@@ -16,7 +16,7 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - circle
 - polyline
 - marker
-- circleMarker
+- circlemarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
 
 It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/),  through the `multiLevel` option in layer configuration (see [Layer configuration](#layer-configuration)).
@@ -82,11 +82,11 @@ The configuration object that defines the layers that will be added to the map.
 
 ##### Layer configuration
 
-- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circleMarker, csvTiles, tileLayerMultiSlice.
+- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circlemarker, csvTiles, tileLayerMultiSlice.
 - `name` String (optional).
 - `role` String (optional), a string of type `role1 role2 role3` where each role can be one of the following:
   - `drawnItems` for featureGroup type layers it indicates that the given layer has to be used as the featureGroup for editing in the drawControl.
-  - `guide` the given layer will be used as snap guideLayer, works for polygon, polyline, rectangle, marker, circleMarker, featureGroup, layerGroup.
+  - `guide` the given layer will be used as snap guideLayer, works for polygon, polyline, rectangle, marker, circlemarker, featureGroup, layerGroup.
 - `author` String (optional).
 - `details` String (optional).
 - `multiLevel` Logical, use the multiLevel (``.ml``) verison of the type of layer.
@@ -155,7 +155,7 @@ Plus, other layer-dependent options:
 - `latlng` LatLng
 - `options` MarkerOptions
 
-###### circleMarker
+###### circlemarker
 
 - `latlng` LatLng
 - `options` CircleMarkerOptions

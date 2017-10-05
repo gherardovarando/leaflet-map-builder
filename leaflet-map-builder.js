@@ -82,6 +82,7 @@ if (L != undefined) {
     setMap: function(map) {
       if (!map) return;
       if (map instanceof L.Map) {
+        this.clear();
         this.map = map;
         this.fire("set:map", map);
       } else {
@@ -384,7 +385,7 @@ if (L != undefined) {
       if (guides && guides.length >= 0) this._guides = guides;
       let options = {
       };
-      let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circleMarker'];
+      let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
       keys.map((tag) => {
         if (this._options.controls && this._options.controls.draw && this._options.controls.draw[tag]) {
           options[tag] = {
@@ -409,7 +410,7 @@ if (L != undefined) {
         if (options.draw) {
           options.draw = Object.assign({}, options.draw);
         }
-        let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circleMarker'];
+        let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
         keys.map((tag) => {
           if (options.draw[tag]) {
             options.draw[tag] = Object.assign({
