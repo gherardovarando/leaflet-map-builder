@@ -29,9 +29,7 @@ if (L != undefined) {
     _indx: 0,
     _nameIndx: 0,
     _size: null,
-    _configuration: {
-      layers: {}
-    },
+    _configuration: null,
     _eventsmap: [],
     _layers: {},
     _controls: {},
@@ -144,7 +142,7 @@ if (L != undefined) {
     },
 
     //clean the map
-    clear: function() {
+    clear: function(c) {
       if (this.map instanceof L.Map) {
         this.map.eachLayer((layer) => {
           this.map.removeLayer(layer);
@@ -172,6 +170,9 @@ if (L != undefined) {
       this._state.baseLayerOn = false;
       this._activeBaseLayer = null;
       this._guides = [];
+      if (c){
+        this._configuration = null
+      }
       this.fire('clear');
     },
 
@@ -184,7 +185,7 @@ if (L != undefined) {
     },
 
     reload: function() {
-      if (!this.map) {
+      if (!this.map || !this._configuration) {
         return;
       } else {
         this.clear();
@@ -194,10 +195,11 @@ if (L != undefined) {
         if (this._options.controls.attribution) {
           this._addAttributionControl();
         }
-        let i = 0;
-        let tot = Object.keys(this._configuration.layers).length;
+
         //load all the layers
-        if (this._configuration.layers) {
+        if (this._configuration && this._configuration.layers) {
+          let i = 0;
+          let tot = Object.keys(this._configuration.layers).length;
           if (this._configuration.layers instanceof Array) {
             this._configuration.layers.map((layer, key) => {
               this.loadLayer(layer, this.map);
@@ -218,14 +220,14 @@ if (L != undefined) {
         if (this._options.controls.zoom) {
           this._addZoomControl();
         }
-        if (this._configuration.maxZoom) {
+        if (this._configuration && this._configuration.maxZoom) {
           this.map.setMaxZoom(this._configuration.maxZoom);
         }
-        if (this._configuration.minZoom) {
+        if (this._configuration && this._configuration.minZoom) {
           this.map.setMinZoom(this._configuration.minZoom);
         }
         this.map.fitWorld();
-        if (this._configuration.center) {
+        if (this._configuration && this._configuration.center) {
           this.map.setView(this._configuration.center, this._configuration.zoom || 0);
         }
         this.fire('reload');
@@ -242,8 +244,6 @@ if (L != undefined) {
     offMap: function(ev) {
       if (this.map instanceof L.Map) this.map.off(ev);
     },
-
-
 
 
     loadLayer: function(configuration, where) {
@@ -383,8 +383,7 @@ if (L != undefined) {
 
     _updateGuides: function(guides) {
       if (guides && guides.length >= 0) this._guides = guides;
-      let options = {
-      };
+      let options = {};
       let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
       keys.map((tag) => {
         if (this._options.controls && this._options.controls.draw && this._options.controls.draw[tag]) {
