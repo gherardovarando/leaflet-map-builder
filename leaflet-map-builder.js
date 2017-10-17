@@ -665,9 +665,10 @@ if (L != undefined) {
 
     _loadCsvTiles: function(configuration, where) {
       //create layer
-      if (configuration.url || configuration.urlTemplate) { //check if there is the tilesUrlTemplate
+      let url = configuration.url || configuration.urlTemplate
+      if (url) { //check if there is the tilesUrlTemplate
         if (L.csvTiles) {
-          let layer = L.csvTiles(this._joinBasePath(configuration.urlTemplate), configuration.options);
+          let layer = L.csvTiles(this._joinBasePath(url), configuration.options);
           return layer;
         } else {
           throw {
