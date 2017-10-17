@@ -170,7 +170,7 @@ if (L != undefined) {
       this._state.baseLayerOn = false;
       this._activeBaseLayer = null;
       this._guides = [];
-      if (c){
+      if (c) {
         this._configuration = null
       }
       this.fire('clear');
@@ -279,7 +279,12 @@ if (L != undefined) {
           layer = this._loadCircleMarker(configuration, where);
           break;
         case 'guidelayer':
-          layer = this._loadGuideLayer(configuration, where);
+          if (typeof configuration.role === 'string' && !configuration.role.includes('guide')) configuration.role += ' guide'
+          if (!configuration.role) configuration.role = 'guide'
+          layer = this._loadGridLayer(configuration, where);
+          break;
+        case 'gridlayer':
+          layer = this._loadGridLayer(configuration, where);
           break;
         case 'imageoverlay':
           layer = this._loadImageOverlay(configuration, where);
@@ -559,35 +564,28 @@ if (L != undefined) {
       return layer;
     },
 
-    _loadGuideLayer: function(configuration) {
-      let guideLayer = L.featureGroup();
-      configuration.role = 'guide';
-
-
-      if (configuration.points) {
-
-      } else {
-        let scale = configuration.scale || 1;
-        let size = (configuration.size || 256);
-        let opt = Object.assign({
-          radius: 4
-        }, configuration);
-        Object.assign(opt, configuration.options);
-        let tileSize = (configuration.tileSize || size);
-        if (tileSize > 0 && size < 100 * tileSize) { //limit the number to draw to 10000
-          for (let i = 0; i <= configuration.size; i = i + tileSize) {
-            for (let j = 0; j <= configuration.size; j = j + tileSize) {
-              guideLayer.addLayer(L.circleMarker([-i / scale, j / scale], opt));
-            }
+    _loadGridLayer: function(configuration) {
+      let gridLayer = L.featureGroup();
+      let scale = configuration.scale || 1;
+      let size = (configuration.size || 256);
+      let opt = Object.assign({
+        radius: 4
+      }, configuration);
+      Object.assign(opt, configuration.options);
+      let tileSize = (configuration.tileSize || size);
+      if (tileSize > 0 && size < 100 * tileSize) { //limit the number to draw to 10000
+        for (let i = 0; i <= configuration.size; i = i + tileSize) {
+          for (let j = 0; j <= configuration.size; j = j + tileSize) {
+            gridLayer.addLayer(L.circleMarker([-i / scale, j / scale], opt));
           }
         }
       }
-      return guideLayer;
+      return gridLayer;
     },
 
     _loadImageOverlay: function(configuration) {
-      if (configuration.imageUrl) { //check if there is an url
-
+      let url = configuration.imageUrl || configuration.url
+      if (typeof url === 'string') { //check if there is an url
         let options = Object.assign({
           opacity: 1,
           bounds: [
@@ -596,16 +594,16 @@ if (L != undefined) {
           ]
         }, configuration);
         Object.assign(options, configuration.options);
-        let layer = L.imageOverlay(this._joinBasePath(options.imageUrl), options.bounds, options);
+        let layer = L.imageOverlay(this._joinBasePath(url), options.bounds, options);
         return layer;
-
       }
 
     },
 
     _loadTileLayerWMS: function(configuration) {
       //create layer
-      if (configuration.baseUrl) { //check if there is the tilesUrlTemplate
+      let url = configuration.url || configuration.baseUrl
+      if (typeof url == 'string') { //check if there is the tilesUrlTemplate
         let options = Object.assign({}, configuration);
         Object.assign(options, configuration.options);
         if (options.tileSize) {
@@ -625,7 +623,7 @@ if (L != undefined) {
           this._size = this._size || options.tileSize;
         }
         if (options.layers) {
-          let layer = L.tileLayer.wms(this._joinBasePath(configuration.baseUrl), options);
+          let layer = L.tileLayer.wms(this._joinBasePath(url), options);
           return layer;
         }
       }
@@ -634,7 +632,8 @@ if (L != undefined) {
 
     _loadTileLayer: function(configuration) {
       //create layer
-      if (configuration.tileUrlTemplate) { //check if there is the tilesUrlTemplate
+      let url = configuration.url || configuration.tileUrlTemplate || configuration.urlTemplate
+      if (typeof url === 'string') { //check if there is the tilesUrlTemplate
         let options = Object.assign({}, configuration);
         Object.assign(options, configuration.options);
         if (options.tileSize) {
@@ -656,9 +655,9 @@ if (L != undefined) {
 
         let layer;
         if (configuration.multiLevel && (typeof L.tileLayer.ml === 'function')) {
-          layer = L.tileLayer.ml(this._joinBasePath(configuration.tileUrlTemplate), options);
+          layer = L.tileLayer.ml(this._joinBasePath(url), options);
         } else {
-          layer = L.tileLayer(this._joinBasePath(configuration.tileUrlTemplate), options);
+          layer = L.tileLayer(this._joinBasePath(url), options);
         }
         return layer;
       }
@@ -666,13 +665,13 @@ if (L != undefined) {
 
     _loadCsvTiles: function(configuration, where) {
       //create layer
-      if (configuration.urlTemplate) { //check if there is the tilesUrlTemplate
+      if (configuration.url || configuration.urlTemplate) { //check if there is the tilesUrlTemplate
         if (L.csvTiles) {
           let layer = L.csvTiles(this._joinBasePath(configuration.urlTemplate), configuration.options);
           return layer;
         } else {
           throw {
-            type: "leaflet-csvTiles extension error",
+            type: "leaflet-csvTiles plugin error",
             message: 'leaflet-csvTiles is not loaded, please load it before attempting to load a csvTile'
           };
         }

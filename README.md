@@ -19,14 +19,14 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - circlemarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
 
-It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/),  through the `multiLevel` option in layer configuration (see [Layer configuration](#layer-configuration)).
+It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/), through the `multiLevel` option in layer configuration (see [Layer configuration](#layer-configuration)).
 
 It also supports the following controls:
 
 - LayersControl
 - zoomControl
 - attributionControl
-- drawControl (via Leafelt.draw and works well with leaflet.snap)  
+- drawControl (via Leafelt.draw and works well with leaflet.snap)
 
 ### If you want to add support for a particular layer or control just fork the repository, implement the new layer appropriate method and (if you want) make a pull request.
 
@@ -85,11 +85,13 @@ The configuration object that defines the layers that will be added to the map.
 - `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circlemarker, csvTiles, tileLayerMultiSlice.
 - `name` String (optional).
 - `role` String (optional), a string of type `role1 role2 role3` where each role can be one of the following:
+
   - `drawnItems` for featureGroup type layers it indicates that the given layer has to be used as the featureGroup for editing in the drawControl.
   - `guide` the given layer will be used as snap guideLayer, works for polygon, polyline, rectangle, marker, circlemarker, featureGroup, layerGroup.
+
 - `author` String (optional).
 - `details` String (optional).
-- `multiLevel` Logical, use the multiLevel (``.ml``) verison of the type of layer.
+- `multiLevel` Logical, use the multiLevel (`.ml`) verison of the type of layer works for tileLayer.
 - `popup` String or object:
 
   - `content` String the content of the popup
@@ -104,26 +106,26 @@ Plus, other layer-dependent options:
 
 ###### tileLayer
 
-- `tileUrlTemplate` String
+- `url || tileUrlTemplate || urlTemplate` String
 - `baseLayer` Logical
 - `options` TileLayer options
 
 ###### tileLayerWMS
 
-- `baseUrl` String
+- `url || baseUrl` String
 - `baseLayer` Logical
 - `options` TileLayer.WMS options
 
 ###### imageOverlay
 
-- `imageUrl` String
+- `url || imageUrl` String
 - `baseLayer` Logical
 - `bounds` LatLng bounds
 - `options` ImageOverlay options
 
 ###### csvTile
 
-- `urlTemplate` String
+- `url || urlTemplate` String
 - `options` CsvTile options
 
 ###### featureGroup/layerGroup
@@ -160,11 +162,11 @@ Plus, other layer-dependent options:
 - `latlng` LatLng
 - `options` CircleMarkerOptions
 
-  ###### Example
+###### Example
 
-  You can try copy paste the following configuration in the demo page.
+You can try copy paste the following configuration in the demo page.
 
-  ```
+```
   {
     "type": "map",
     "layers": {
@@ -298,7 +300,7 @@ Plus, other layer-dependent options:
         }
     }
   }
-  ```
+```
 
 #### Methods
 
@@ -349,7 +351,7 @@ Unregister a map event.
 
 ##### `set:map`
 
-Emitted when the a map object is linked to the mapBuilder.
+Emitted when the a map object is linked to the MapBuilder.
 
 ##### `set:configuration`
 
