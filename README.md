@@ -162,6 +162,18 @@ Plus, other layer-dependent options:
 - `latlng` LatLng
 - `options` CircleMarkerOptions
 
+###### gridLayer
+
+Crete a grid of circle markers, if `role` includes `guide` it creates a snapping guide for drawing.
+
+- `options` Options object:
+   - `size`
+   - `tileSize`
+   - `color`
+   - `radius`
+   - `fillColor`
+
+
 ###### Example
 
 You can try copy paste the following configuration in the demo page.
