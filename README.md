@@ -11,6 +11,7 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - imageOverlay
 - featureGroup
 - layerGroup
+- GeoJSON
 - polygon
 - rectangle
 - circle
@@ -131,6 +132,11 @@ Plus, other layer-dependent options:
 ###### featureGroup/layerGroup
 
 - `layers` Object, layers configurations
+
+####### GeoJSON
+
+- `data` geoJSON object
+- `options`
 
 ###### polyline
 

@@ -257,6 +257,9 @@ if (L != undefined) {
       }
       if (configuration.multiLevel && !this.map.options.multilevel) return;
       switch (configuration.type.toLowerCase()) {
+        case 'geojson':
+          layer = this._loadGeoJSON(configuration, where)
+          break;
         case 'tilelayer':
           layer = this._loadTileLayer(configuration, where);
           break;
@@ -677,6 +680,13 @@ if (L != undefined) {
           };
         }
       }
+    },
+
+    _loadGeoJSON: function(configuration, where) {
+      let data;
+      if (configuration.data) data = configuration.data;
+      else return;
+      return L.geoJSON(data);
     },
 
     _joinBasePath: function(url) {
