@@ -29,18 +29,17 @@ if (L != undefined) {
     _indx: 0,
     _nameIndx: 0,
     _size: null,
-    _configuration: {
-      layers: {}
-    },
+    _configuration: null,
     _eventsmap: [],
     _layers: {},
     _controls: {},
+    _guides: [],
     _activeBaseLayer: null,
     _state: {
       baseLayerOn: false
     },
     _options: {
-      drawingColor: "#ed8414",
+      loading: () => {},
       controls: {
         draw: false, // logical, options of configuration
         zoom: false, // logical, options of configuration
@@ -81,6 +80,7 @@ if (L != undefined) {
     setMap: function(map) {
       if (!map) return;
       if (map instanceof L.Map) {
+        this.clear();
         this.map = map;
         this.fire("set:map", map);
       } else {
@@ -105,7 +105,7 @@ if (L != undefined) {
       }
       configuration.type = configuration.type || 'undefined';
       configuration.basePath = configuration.basePath || '';
-      if (configuration.type.includes("map")) {
+      if (typeof configuration.type === 'string' && configuration.type.includes("map")) {
         return Object.assign({
           layers: {}
         }, configuration);
@@ -142,7 +142,7 @@ if (L != undefined) {
     },
 
     //clean the map
-    clear: function() {
+    clear: function(c) {
       if (this.map instanceof L.Map) {
         this.map.eachLayer((layer) => {
           this.map.removeLayer(layer);
@@ -169,6 +169,10 @@ if (L != undefined) {
       this._eventsmap = [];
       this._state.baseLayerOn = false;
       this._activeBaseLayer = null;
+      this._guides = [];
+      if (c) {
+        this._configuration = null
+      }
       this.fire('clear');
     },
 
@@ -181,7 +185,7 @@ if (L != undefined) {
     },
 
     reload: function() {
-      if (!this.map) {
+      if (!this.map || !this._configuration) {
         return;
       } else {
         this.clear();
@@ -191,15 +195,20 @@ if (L != undefined) {
         if (this._options.controls.attribution) {
           this._addAttributionControl();
         }
+
         //load all the layers
-        if (this._configuration.layers) {
+        if (this._configuration && this._configuration.layers) {
+          let i = 0;
+          let tot = Object.keys(this._configuration.layers).length;
           if (this._configuration.layers instanceof Array) {
             this._configuration.layers.map((layer, key) => {
               this.loadLayer(layer, this.map);
+              this._options.loading(i++, tot);
             });
           } else { //we assume is an object
             Object.keys(this._configuration.layers).map((key) => {
               this.loadLayer(this._configuration.layers[key], this.map);
+              this._options.loading(i++, tot);
             });
           }
 
@@ -211,14 +220,14 @@ if (L != undefined) {
         if (this._options.controls.zoom) {
           this._addZoomControl();
         }
-        if (this._configuration.maxZoom) {
+        if (this._configuration && this._configuration.maxZoom) {
           this.map.setMaxZoom(this._configuration.maxZoom);
         }
-        if (this._configuration.minZoom) {
+        if (this._configuration && this._configuration.minZoom) {
           this.map.setMinZoom(this._configuration.minZoom);
         }
         this.map.fitWorld();
-        if (this._configuration.center) {
+        if (this._configuration && this._configuration.center) {
           this.map.setView(this._configuration.center, this._configuration.zoom || 0);
         }
         this.fire('reload');
@@ -236,62 +245,23 @@ if (L != undefined) {
       if (this.map instanceof L.Map) this.map.off(ev);
     },
 
-    getDrawingColor: function() {
-      if (typeof this._drawingColor === 'string') return this._drawingColor;
-      return "#ed8414";
-    },
-
-    setDrawingColor: function(color) {
-      if (typeof color === 'string') this._drawingColor = color;
-      if (this._controls.draw) {
-        this._controls.draw.setDrawingOptions({
-          polygon: {
-            shapeOptions: {
-              color: color,
-              fillColor: color
-            }
-          },
-          rectangle: {
-            shapeOptions: {
-              color: color,
-              fillColor: color
-            }
-          },
-          circle: {
-            shapeOptions: {
-              color: color,
-              fillColor: color
-            }
-          },
-          polyline: {
-            shapeOptions: {
-              color: color,
-              fillColor: color
-            }
-          }
-        });
-      }
-    },
-
 
     loadLayer: function(configuration, where) {
       if (!configuration) return;
       configuration._id = this._indx++;
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
-      configuration.options = configuration.options || {
-        color: this.getDrawingColor(),
-        fillColor: this.getDrawingColor()
-      };
+      configuration.options = configuration.options || {};
       let layer;
       if (!where || (!where instanceof L.LayerGroup)) {
         where = this.map;
       }
-      switch (configuration.type) {
-        case 'tileLayer':
-          layer = this._loadTileLayer(configuration, where);
+      if (configuration.multiLevel && !this.map.options.multilevel) return;
+      switch (configuration.type.toLowerCase()) {
+        case 'geojson':
+          layer = this._loadGeoJSON(configuration, where)
           break;
-        case 'tileLayerMultiSlice':
-          layer = this._loadTileLayerMultiSlice(configuration, where);
+        case 'tilelayer':
+          layer = this._loadTileLayer(configuration, where);
           break;
         case 'polygon':
           layer = this._loadPolygon(configuration, where);
@@ -308,28 +278,33 @@ if (L != undefined) {
         case 'marker':
           layer = this._loadMarker(configuration, where);
           break;
-        case 'circleMarker':
+        case 'circlemarker':
           layer = this._loadCircleMarker(configuration, where);
           break;
-        case 'guideLayer':
-          layer = this._loadGuideLayer(configuration, where);
+        case 'guidelayer':
+          if (typeof configuration.role === 'string' && !configuration.role.includes('guide')) configuration.role += ' guide'
+          if (!configuration.role) configuration.role = 'guide'
+          layer = this._loadGridLayer(configuration, where);
           break;
-        case 'imageOverlay':
+        case 'gridlayer':
+          layer = this._loadGridLayer(configuration, where);
+          break;
+        case 'imageoverlay':
           layer = this._loadImageOverlay(configuration, where);
           break;
-        case 'imageLayer':
+        case 'imagelayer':
           layer = this._loadImageOverlay(configuration, where);
           break;
-        case 'featureGroup':
+        case 'featuregroup':
           layer = this._loadFeatureGroup(configuration, where);
           break;
-        case 'layerGroup':
+        case 'layergroup':
           layer = this._loadLayerGroup(configuration, where);
           break;
-        case 'tileLayerWMS':
+        case 'tilelayerwms':
           layer = this._loadTileLayerWMS(configuration, where);
           break;
-        case 'csvTiles':
+        case 'csvtiles':
           layer = this._loadCsvTiles(configuration, where);
           break;
         default:
@@ -338,17 +313,35 @@ if (L != undefined) {
 
       if (layer) {
         layer._id = configuration._id;
+        layer._configuration = configuration;
+
+        //tooltip
         if (configuration.tooltip) {
           layer.bindTooltip(configuration.tooltip.content || configuration.tooltip, configuration.tooltip.options);
         } else if (this._options.tooltip[configuration.type]) {
           layer.bindTooltip(configuration.name);
         }
+        //popup
         if (configuration.popup) {
           layer.bindPopup(configuration.popup.content || configuration.popup, configuration.popup.options);
         } else if (this._options.popup[configuration.type]) {
           layer.bindPopup(`${configuration.name}  <p>${configuration.details || ''}</p>`);
         }
 
+        //guide role
+        if (typeof configuration.role === 'string' && configuration.role.includes('guide')) {
+          layer.on("add", () => {
+            this._guides.push(layer);
+            this._updateGuides();
+          });
+          layer.on("remove", () => {
+            this._guides.splice(this._guides.indexOf(layer), 1);
+            this._updateGuides();
+          });
+        }
+
+
+        //add the layer to something
         if (where && (typeof where.addLayer === 'function')) {
           if (this._controls.layers && where === this.map) {
             if (configuration.baseLayer) {
@@ -366,6 +359,9 @@ if (L != undefined) {
             where.addLayer(layer);
           }
         }
+
+
+        //fire the event
         this.fire('load:layer', {
           layer: layer,
           configuration: configuration,
@@ -389,7 +385,24 @@ if (L != undefined) {
           type: 'featureGroup',
           layers: {}
         }
-      })
+      });
+    },
+
+
+    _updateGuides: function(guides) {
+      if (guides && guides.length >= 0) this._guides = guides;
+      let options = {};
+      let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
+      keys.map((tag) => {
+        if (this._options.controls && this._options.controls.draw && this._options.controls.draw[tag]) {
+          options[tag] = {
+            guideLayers: this._guides
+          }
+        }
+      });
+      if (this._controls.draw) {
+        this._controls.draw.setDrawingOptions(options);
+      }
     },
 
     _addDrawControl: function() {
@@ -404,14 +417,12 @@ if (L != undefined) {
         if (options.draw) {
           options.draw = Object.assign({}, options.draw);
         }
-        ['polyline', 'polygon', 'rectangle', 'circle'].map((t) => {
-          if (options.draw[t]) {
-            options.draw[t] = Object.assign({
-              shapeOptions: {
-                color: this.getDrawingColor(),
-                fillColor: this.getDrawingColor()
-              }
-            }, options.draw[t]);
+        let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
+        keys.map((tag) => {
+          if (options.draw[tag]) {
+            options.draw[tag] = Object.assign({
+              guideLayers: this._guides
+            }, options.draw[tag]);
           }
         });
         if (options.edit) {
@@ -424,6 +435,11 @@ if (L != undefined) {
       let drawControl = new L.Control.Draw(options);
       this._controls.draw = drawControl;
       if (this.map instanceof L.Map) this.map.addControl(drawControl);
+      this.fire('load:control', {
+        controlType: 'draw',
+        control: this._controls.draw,
+        featureGroup: this._drawnItems
+      })
     },
 
     _addLayersControl: function() {
@@ -461,8 +477,7 @@ if (L != undefined) {
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
       configuration.layers = configuration.layers || {};
       let layer = L.featureGroup();
-      if (configuration.role === 'drawnItems') {
-        if (this.map instanceof L.Map) this.map.addLayer(layer);
+      if (typeof configuration.role === 'string' && configuration.role.includes('drawnItems')) {
         this._drawnItems = layer;
       }
       Object.keys(configuration.layers).map((key) => {
@@ -552,67 +567,28 @@ if (L != undefined) {
       return layer;
     },
 
-    _loadGuideLayer: function(configuration) {
-      let guideLayer = L.featureGroup();
-      guideLayer.on("add", () => {
-        if (this._controls.draw) {
-          this._controls.draw.setDrawingOptions({
-            polyline: {
-              guideLayers: [guideLayer]
-            },
-            polygon: {
-              guideLayers: [guideLayer],
-              snapDistance: 5
-            },
-            rectangle: {
-              guideLayers: [guideLayer],
-              snapDistance: 5
-            }
-          });
-        }
-      });
-      guideLayer.on("remove", () => {
-        if (this._controls.draw) {
-          this._controls.draw.setDrawingOptions({
-            polyline: {
-              guideLayers: null
-            },
-            polygon: {
-              guideLayers: null
-            },
-            rectangle: {
-              guideLayers: null
-            }
-          });
-        }
-      });
-
-      if (configuration.points) {
-
-      } else {
-        let scale = configuration.scale || 1;
-        let size = (configuration.size || 256);
-        let opt = Object.assign({
-          color: this.getDrawingColor(),
-          fillColor: this.getDrawingColor(),
-          radius: 4
-        }, configuration);
-        Object.assign(opt, configuration.options);
-        let tileSize = (configuration.tileSize || size);
-        if (tileSize > 0 && size < 100 * tileSize) { //limit the number to draw to 10000
-          for (let i = 0; i <= configuration.size; i = i + tileSize) {
-            for (let j = 0; j <= configuration.size; j = j + tileSize) {
-              guideLayer.addLayer(L.circleMarker([-i / scale, j / scale], opt));
-            }
+    _loadGridLayer: function(configuration) {
+      let gridLayer = L.featureGroup();
+      let scale = configuration.scale || 1;
+      let size = (configuration.size || 256);
+      let opt = Object.assign({
+        radius: 4
+      }, configuration);
+      Object.assign(opt, configuration.options);
+      let tileSize = (configuration.tileSize || size);
+      if (tileSize > 0 && size < 100 * tileSize) { //limit the number to draw to 10000
+        for (let i = 0; i <= configuration.size; i = i + tileSize) {
+          for (let j = 0; j <= configuration.size; j = j + tileSize) {
+            gridLayer.addLayer(L.circleMarker([-i / scale, j / scale], opt));
           }
         }
       }
-      return guideLayer;
+      return gridLayer;
     },
 
     _loadImageOverlay: function(configuration) {
-      if (configuration.imageUrl) { //check if there is an url
-
+      let url = configuration.imageUrl || configuration.url
+      if (typeof url === 'string') { //check if there is an url
         let options = Object.assign({
           opacity: 1,
           bounds: [
@@ -621,16 +597,16 @@ if (L != undefined) {
           ]
         }, configuration);
         Object.assign(options, configuration.options);
-        let layer = L.imageOverlay(this._joinBasePath(options.imageUrl), options.bounds, options);
+        let layer = L.imageOverlay(this._joinBasePath(url), options.bounds, options);
         return layer;
-
       }
 
     },
 
     _loadTileLayerWMS: function(configuration) {
       //create layer
-      if (configuration.baseUrl) { //check if there is the tilesUrlTemplate
+      let url = configuration.url || configuration.baseUrl
+      if (typeof url == 'string') { //check if there is the tilesUrlTemplate
         let options = Object.assign({}, configuration);
         Object.assign(options, configuration.options);
         if (options.tileSize) {
@@ -650,7 +626,7 @@ if (L != undefined) {
           this._size = this._size || options.tileSize;
         }
         if (options.layers) {
-          let layer = L.tileLayer.wms(this._joinBasePath(configuration.baseUrl), options);
+          let layer = L.tileLayer.wms(this._joinBasePath(url), options);
           return layer;
         }
       }
@@ -659,7 +635,8 @@ if (L != undefined) {
 
     _loadTileLayer: function(configuration) {
       //create layer
-      if (configuration.tileUrlTemplate) { //check if there is the tilesUrlTemplate
+      let url = configuration.url || configuration.tileUrlTemplate || configuration.urlTemplate
+      if (typeof url === 'string') { //check if there is the tilesUrlTemplate
         let options = Object.assign({}, configuration);
         Object.assign(options, configuration.options);
         if (options.tileSize) {
@@ -679,52 +656,37 @@ if (L != undefined) {
           this._size = this._size || options.tileSize;
         }
 
-        let layer = L.tileLayer(this._joinBasePath(configuration.tileUrlTemplate), options);
-        return layer;
-      }
-    },
-
-    _loadTileLayerMultiSlice: function(configuration) {
-      //create layer
-      if (!L.tileLayer.multiSlice) return;
-      if (configuration.tileUrlTemplate) { //check if there is the tilesUrlTemplate
-        let options = {};
-        Object.assign(options, configuration.options);
-        if (options.tileSize) {
-          if (Array.isArray(options.tileSize)) {
-            options.tileSize = L.point(options.tileSize[0], options.tileSize[1]);
-            this._size = this._size || Math.max(options.tileSize);
-          }
-          if (options.tileSize.x && options.tileSize.y) {
-            options.tileSize = L.point(options.tileSize.x, options.tileSize.y);
-            this._size = this._size || Math.max(options.tileSize.x, options.tileSize.y);
-          }
-          if (options.tileSize > 0) {
-            this._size = this._size || options.tileSize;
-          }
+        let layer;
+        if (configuration.multiLevel && (typeof L.tileLayer.ml === 'function')) {
+          layer = L.tileLayer.ml(this._joinBasePath(url), options);
         } else {
-          options.tileSize = 256;
-          this._size = this._size || options.tileSize;
+          layer = L.tileLayer(this._joinBasePath(url), options);
         }
-
-        let layer = L.tileLayer.multiSlice(this._joinBasePath(configuration.tileUrlTemplate), options);
         return layer;
       }
     },
 
     _loadCsvTiles: function(configuration, where) {
       //create layer
-      if (configuration.urlTemplate) { //check if there is the tilesUrlTemplate
+      let url = configuration.url || configuration.urlTemplate
+      if (url) { //check if there is the tilesUrlTemplate
         if (L.csvTiles) {
-          let layer = L.csvTiles(this._joinBasePath(configuration.urlTemplate), configuration.options);
+          let layer = L.csvTiles(this._joinBasePath(url), configuration.options);
           return layer;
         } else {
           throw {
-            type: "leaflet-csvTiles extension error",
+            type: "leaflet-csvTiles plugin error",
             message: 'leaflet-csvTiles is not loaded, please load it before attempting to load a csvTile'
           };
         }
       }
+    },
+
+    _loadGeoJSON: function(configuration, where) {
+      let data;
+      if (configuration.data) data = configuration.data;
+      else return;
+      return L.geoJSON(data);
     },
 
     _joinBasePath: function(url) {
