@@ -11,23 +11,25 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - imageOverlay
 - featureGroup
 - layerGroup
+- GeoJSON
 - polygon
 - rectangle
 - circle
 - polyline
 - marker
-- circleMarker
+- circlemarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
-- [tileLayerMultiSlice](https://github.com/gherardovarando/leaflet-multislice)
+
+It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/), through the `multiLevel` option in layer configuration (see [Layer configuration](#layer-configuration)).
 
 It also supports the following controls:
 
 - LayersControl
 - zoomControl
 - attributionControl
-- drawControl (via Leafelt.draw)
+- drawControl (via Leafelt.draw and works well with leaflet.snap)
 
-### If you want to add support for a particular layer or control just for the repository, implement the new layer appropriate method and (if you want) make a pull request.
+### If you want to add support for a particular layer or control just fork the repository, implement the new layer appropriate method and (if you want) make a pull request.
 
 ## API
 
@@ -50,7 +52,7 @@ The option that can be passed on creation
   - `zoom` L.Control.Zoom options
   - `layers` L.Control.Layers options or a function `function(layer, configuration, where)`, if `null` or `false` the layers will be added to the map directly.
 
-- `tooltip` Define which objects will have an appended tooltip automatically set with content given by the `name` in the layer configuration object. Otherwise individually tooltip can be created with the `tooltip` field in the layer configuration object (see [Layer configuration](# Layer configuration) ).
+- `tooltip` Define which objects will have an appended tooltip automatically set with content given by the `name` in the layer configuration object. Otherwise individually tooltip can be created with the `tooltip` field in the layer configuration object (see [Layer configuration](#layer-configuration)).
 
   - `polygon` logical
   - `rectangle` logical
@@ -59,7 +61,7 @@ The option that can be passed on creation
   - `marker` logical
   - ....
 
-- `popup` Define which objects will have an appended popup automatically set with content given by the fields `name` and `details` in the layer configuration object. Otherwise individually popup can be created with the `popup` field in the layer configuration object (see [Layer configuration](# Layer configuration) ).
+- `popup` Define which objects will have an appended popup automatically set with content given by the fields `name` and `details` in the layer configuration object. Otherwise individually popup can be created with the `popup` field in the layer configuration object (see [Layer configuration](#layer-configuration)).
 
   - `polygon` logical
   - `rectangle` logical
@@ -75,16 +77,22 @@ The configuration object that defines the layers that will be added to the map.
 - `type`, String equal to `map` otherwise the configuration will not be loaded.
 - `name`, String (optional).
 - `authors`, String (optional).
-- `layers`, layer configuration object (optional).
+- `layers`, array or object of layer configuration objects (optional).
 - `center`, Array (optional), where the map has to be centered on loading.
 - `zoom`, Integer (optional), zoom to be set in loading.
 
 ##### Layer configuration
 
-- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circleMarker, csvTiles, tileLayerMultiSlice.
+- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circlemarker, csvTiles, tileLayerMultiSlice.
 - `name` String (optional).
+- `role` String (optional), a string of type `role1 role2 role3` where each role can be one of the following:
+
+  - `drawnItems` for featureGroup type layers it indicates that the given layer has to be used as the featureGroup for editing in the drawControl.
+  - `guide` the given layer will be used as snap guideLayer, works for polygon, polyline, rectangle, marker, circlemarker, featureGroup, layerGroup.
+
 - `author` String (optional).
 - `details` String (optional).
+- `multiLevel` Logical, use the multiLevel (`.ml`) verison of the type of layer works for tileLayer.
 - `popup` String or object:
 
   - `content` String the content of the popup
@@ -95,41 +103,40 @@ The configuration object that defines the layers that will be added to the map.
   - `content` String the content of the tooltip
   - `options` Object, tooltip options.
 
-Depending on the type of layer:
+Plus, other layer-dependent options:
 
 ###### tileLayer
 
-- `tileUrlTemplate` String
+- `url || tileUrlTemplate || urlTemplate` String
 - `baseLayer` Logical
 - `options` TileLayer options
 
 ###### tileLayerWMS
 
-- `baseUrl` String
+- `url || baseUrl` String
 - `baseLayer` Logical
 - `options` TileLayer.WMS options
 
 ###### imageOverlay
 
-- `imageUrl` String
+- `url || imageUrl` String
 - `baseLayer` Logical
 - `bounds` LatLng bounds
 - `options` ImageOverlay options
 
-###### tileLayerMultiSlice
-
-- `tileUrlTemplate` String
-- `baseLayer` Logical
-- `options` TileLayerMultiSlice options
-
 ###### csvTile
 
-- `urlTemplate` String
+- `url || urlTemplate` String
 - `options` CsvTile options
 
 ###### featureGroup/layerGroup
 
 - `layers` Object, layers configurations
+
+####### GeoJSON
+
+- `data` geoJSON object
+- `options`
 
 ###### polyline
 
@@ -156,16 +163,28 @@ Depending on the type of layer:
 - `latlng` LatLng
 - `options` MarkerOptions
 
-###### circleMarker
+###### circlemarker
 
 - `latlng` LatLng
 - `options` CircleMarkerOptions
 
-  ###### Example
+###### gridLayer
 
-  You can try copy paste the following configuration in the demo page.
+Crete a grid of circle markers, if `role` includes `guide` it creates a snapping guide for drawing.
 
-  ```
+- `options` Options object:
+   - `size`
+   - `tileSize`
+   - `color`
+   - `radius`
+   - `fillColor`
+
+
+###### Example
+
+You can try copy paste the following configuration in the demo page.
+
+```
   {
     "type": "map",
     "layers": {
@@ -299,7 +318,7 @@ Depending on the type of layer:
         }
     }
   }
-  ```
+```
 
 #### Methods
 
@@ -346,15 +365,11 @@ Register event on map, events registered by this method are cleared on `clear` m
 
 Unregister a map event.
 
-##### `setDrawingColor(color)`
-
-##### `getDrawingColor()`
-
 #### Events
 
 ##### `set:map`
 
-Emitted when the a map object is linked to the mapBuilder.
+Emitted when the a map object is linked to the MapBuilder.
 
 ##### `set:configuration`
 
@@ -380,7 +395,7 @@ Emitted when a layer is loaded. Returns
 
 Emitted when a control is loaded. Returns
 
-- `type` type of control.
+- `controlType` type of control.
 - `control` control object.
 
 ### LICENSE
