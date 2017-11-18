@@ -145,7 +145,7 @@ if (L != undefined) {
     clear: function(c) {
       if (this.map instanceof L.Map) {
         this.map.eachLayer((layer) => {
-          this.map.removeLayer(layer);
+          if (this.map.hasLayer(layer)) this.map.removeLayer(layer);
         });
         if (L.Control.Draw && this._controls.draw instanceof L.Control.Draw) {
           this.map.removeControl(this._controls.draw);
