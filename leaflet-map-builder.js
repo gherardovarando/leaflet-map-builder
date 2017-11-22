@@ -308,6 +308,9 @@ if (L != undefined) {
         case 'csvtiles':
           layer = this._loadCsvTiles(configuration, where);
           break;
+        case 'deepzoom':
+          layer = this._loadDeepZoom(configuration, where);
+          break;
         default:
           return;
       }
@@ -704,6 +707,20 @@ if (L != undefined) {
         return url;
       }
       return `${basePath}${url}`; //simple join, maybe we should at least check for double slash //
+    },
+
+    _loadDeepZoom: function(configuration, where) {
+      if (typeof L.tileLayer.deepzoom != 'function') return
+      let url = configuration.url || configuration.tileUrlTemplate || configuration.urlTemplate
+      if (typeof url === 'string') { //check if there is the tilesUrlTemplate
+        let options = Object.assign({}, configuration);
+        Object.assign(options, configuration.options);
+        if (options.tileSize) {} else {
+          options.tileSize = 256;
+        }
+        let layer L.tileLayer.deepzoom(this._joinBasePath(url), options);
+        return layer;
+      }
     }
 
   });

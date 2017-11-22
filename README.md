@@ -19,6 +19,7 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - marker
 - circlemarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
+- [deepZoom](https://github.com/alfarisi/leaflet-deepzoom)
 
 It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/), through the `multiLevel` option in layer configuration (see [Layer configuration](#layer-configuration)).
 
@@ -91,6 +92,7 @@ The configuration object that defines the layers that will be added to the map.
   - `guide` the given layer will be used as snap guideLayer, works for polygon, polyline, rectangle, marker, circlemarker, featureGroup, layerGroup.
 
 - `author` String (optional).
+
 - `details` String (optional).
 - `multiLevel` Logical, use the multiLevel (`.ml`) verison of the type of layer works for tileLayer.
 - `popup` String or object:
@@ -133,7 +135,7 @@ Plus, other layer-dependent options:
 
 - `layers` Object, layers configurations
 
-####### GeoJSON
+###### # GeoJSON
 
 - `data` geoJSON object
 - `options`
@@ -173,12 +175,22 @@ Plus, other layer-dependent options:
 Crete a grid of circle markers, if `role` includes `guide` it creates a snapping guide for drawing.
 
 - `options` Options object:
-   - `size`
-   - `tileSize`
-   - `color`
-   - `radius`
-   - `fillColor`
 
+  - `size`
+  - `tileSize`
+  - `color`
+  - `radius`
+  - `fillColor`
+
+###### deepZoom
+
+- `url`
+- `options` Options object:
+  - `width` Number, width of the original image
+  - `height` Number, height of the original image
+  - `imageFormat` String , default to `'jpg'`
+  - `tileSize` Number, default to `256`
+  - `maxZoom` Number, optional
 
 ###### Example
 
