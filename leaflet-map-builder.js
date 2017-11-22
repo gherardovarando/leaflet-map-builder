@@ -25,304 +25,304 @@ if (L != undefined) {
    * MapBuilder Class
    */
   L.MapBuilder = L.Evented.extend({
-      map: null,
-      _indx: 0,
-      _nameIndx: 0,
-      _size: null,
-      _configuration: null,
-      _eventsmap: [],
-      _layers: {},
-      _controls: {},
-      _guides: [],
-      _activeBaseLayer: null,
-      _state: {
-        baseLayerOn: false
+    map: null,
+    _indx: 0,
+    _nameIndx: 0,
+    _size: null,
+    _configuration: null,
+    _eventsmap: [],
+    _layers: {},
+    _controls: {},
+    _guides: [],
+    _activeBaseLayer: null,
+    _state: {
+      baseLayerOn: false
+    },
+    _options: {
+      loading: () => {},
+      controls: {
+        draw: false, // logical, options of configuration
+        zoom: false, // logical, options of configuration
+        layers: false, // logical, options of configuration or function for external control
+        attribution: false
       },
-      _options: {
-        loading: () => {},
-        controls: {
-          draw: false, // logical, options of configuration
-          zoom: false, // logical, options of configuration
-          layers: false, // logical, options of configuration or function for external control
-          attribution: false
-        },
-        tooltip: {
-          polygon: false,
-          rectangle: false,
-          polyline: false,
-          circle: false
-        },
-        popup: {
-          polygon: false,
-          rectangle: false,
-          polyline: false,
-          circle: false
-        }
+      tooltip: {
+        polygon: false,
+        rectangle: false,
+        polyline: false,
+        circle: false
       },
+      popup: {
+        polygon: false,
+        rectangle: false,
+        polyline: false,
+        circle: false
+      }
+    },
 
-      /**
-       * constructor
-       * @param  {Object} map               L.Map leaflet object
-       * @param  {Object} options
-       * @param  {Object} configuration
-       * @return {MapBuilder}
-       */
-      initialize: function(map, options, configuration) {
-        this.setMap(map);
-        this.setOptions(options);
-        this.setConfiguration(configuration);
-      },
+    /**
+     * constructor
+     * @param  {Object} map               L.Map leaflet object
+     * @param  {Object} options
+     * @param  {Object} configuration
+     * @return {MapBuilder}
+     */
+    initialize: function(map, options, configuration) {
+      this.setMap(map);
+      this.setOptions(options);
+      this.setConfiguration(configuration);
+    },
 
-      /**
-       * Set map object
-       * @param {Object} map L.Map lealfet object
-       */
-      setMap: function(map) {
-        if (!map) return;
-        if (map instanceof L.Map) {
-          this.clear();
-          this.map = map;
-          this.fire("set:map", map);
-        } else {
-          throw {
-            type: "Map error, trying to bind a non L.Map object",
-            map: map
-          };
-        }
+    /**
+     * Set map object
+     * @param {Object} map L.Map lealfet object
+     */
+    setMap: function(map) {
+      if (!map) return;
+      if (map instanceof L.Map) {
+        this.clear();
+        this.map = map;
+        this.fire("set:map", map);
+      } else {
+        throw {
+          type: "Map error, trying to bind a non L.Map object",
+          map: map
+        };
+      }
 
-      },
+    },
 
 
 
-      /**
-       * parse the configuration object
-       * @param  {Object, String} configuration
-       * @return {Object}
-       */
-      _parse: function(configuration) { // add some more
-        if (typeof configuration === 'string') {
-          configuration = JSON.parse(configuration);
-        }
-        configuration.type = configuration.type || 'undefined';
-        configuration.basePath = configuration.basePath || '';
-        if (typeof configuration.type === 'string' && configuration.type.includes("map")) {
-          return Object.assign({
-            layers: {}
-          }, configuration);
-          //configuration.layers = configuration.layers || {};
-          //return configuration;
-        } else {
-          throw {
-            type: "configuration type error",
-            configuration: configuration
-          };
-        }
-      },
+    /**
+     * parse the configuration object
+     * @param  {Object, String} configuration
+     * @return {Object}
+     */
+    _parse: function(configuration) { // add some more
+      if (typeof configuration === 'string') {
+        configuration = JSON.parse(configuration);
+      }
+      configuration.type = configuration.type || 'undefined';
+      configuration.basePath = configuration.basePath || '';
+      if (typeof configuration.type === 'string' && configuration.type.includes("map")) {
+        return Object.assign({
+          layers: {}
+        }, configuration);
+        //configuration.layers = configuration.layers || {};
+        //return configuration;
+      } else {
+        throw {
+          type: "configuration type error",
+          configuration: configuration
+        };
+      }
+    },
 
-      setConfiguration: function(configuration) {
-        if (!configuration) return;
-        this._configuration = this._parse(configuration);
-        this.fire('set:configuration', {
-          configuration: this._configuration
+    setConfiguration: function(configuration) {
+      if (!configuration) return;
+      this._configuration = this._parse(configuration);
+      this.fire('set:configuration', {
+        configuration: this._configuration
+      });
+      this.reload();
+    },
+
+    // return a copy of the configuration object
+    getConfiguration: function() {
+      //  return Object.assign({}, this._configuration);
+      //return Object.assign({}, this._configuration);
+      return this._configuration;
+    },
+
+    setOptions: function(options) {
+      if (!options) return;
+      Object.assign(this._options, options);
+      this.reload();
+    },
+
+    //clean the map
+    clear: function(c) {
+      if (this.map instanceof L.Map) {
+        this.map.eachLayer((layer) => {
+          if (this.map.hasLayer(layer)) this.map.removeLayer(layer);
         });
-        this.reload();
-      },
-
-      // return a copy of the configuration object
-      getConfiguration: function() {
-        //  return Object.assign({}, this._configuration);
-        //return Object.assign({}, this._configuration);
-        return this._configuration;
-      },
-
-      setOptions: function(options) {
-        if (!options) return;
-        Object.assign(this._options, options);
-        this.reload();
-      },
-
-      //clean the map
-      clear: function(c) {
-        if (this.map instanceof L.Map) {
-          this.map.eachLayer((layer) => {
-            if (this.map.hasLayer(layer)) this.map.removeLayer(layer);
-          });
-          if (L.Control.Draw && this._controls.draw instanceof L.Control.Draw) {
-            this.map.removeControl(this._controls.draw);
-          }
-
-          if (this._controls.layers instanceof L.Control.Layers) {
-            this.map.removeControl(this._controls.layers);
-          }
-          if (this._controls.zoom instanceof L.Control.Zoom) {
-            this.map.removeControl(this._controls.zoom);
-          }
-          if (this._controls.attribution instanceof L.Control.Attribution) {
-            this.map.removeControl(this._controls.attribution);
-          }
-          this._removeMapListener();
+        if (L.Control.Draw && this._controls.draw instanceof L.Control.Draw) {
+          this.map.removeControl(this._controls.draw);
         }
-        this._controls = {}
-        this._drawnItems = null;
-        this._indx = 0;
-        this._nameIndx = 0;
-        this._size = null;
-        this._eventsmap = [];
-        this._state.baseLayerOn = false;
-        this._activeBaseLayer = null;
-        this._guides = [];
-        if (c) {
-          this._configuration = null
-        }
-        this.fire('clear');
-      },
 
-      _removeMapListener: function() {
-        if (this.map instanceof L.Map) {
-          this._eventsmap.map((ev) => {
-            this.map.off(ev);
-          });
+        if (this._controls.layers instanceof L.Control.Layers) {
+          this.map.removeControl(this._controls.layers);
         }
-      },
+        if (this._controls.zoom instanceof L.Control.Zoom) {
+          this.map.removeControl(this._controls.zoom);
+        }
+        if (this._controls.attribution instanceof L.Control.Attribution) {
+          this.map.removeControl(this._controls.attribution);
+        }
+        this._removeMapListener();
+      }
+      this._controls = {}
+      this._drawnItems = null;
+      this._indx = 0;
+      this._nameIndx = 0;
+      this._size = null;
+      this._eventsmap = [];
+      this._state.baseLayerOn = false;
+      this._activeBaseLayer = null;
+      this._guides = [];
+      if (c) {
+        this._configuration = null
+      }
+      this.fire('clear');
+    },
 
-      reload: function() {
-        if (!this.map || !this._configuration) {
+    _removeMapListener: function() {
+      if (this.map instanceof L.Map) {
+        this._eventsmap.map((ev) => {
+          this.map.off(ev);
+        });
+      }
+    },
+
+    reload: function() {
+      if (!this.map || !this._configuration) {
+        return;
+      } else {
+        this.clear();
+        if (this._options.controls.layers) {
+          this._addLayersControl();
+        }
+        if (this._options.controls.attribution) {
+          this._addAttributionControl();
+        }
+
+        //load all the layers
+        if (this._configuration && this._configuration.layers) {
+          let i = 0;
+          let tot = Object.keys(this._configuration.layers).length;
+          if (this._configuration.layers instanceof Array) {
+            this._configuration.layers.map((layer, key) => {
+              this.loadLayer(layer, this.map);
+              this._options.loading(i++, tot);
+            });
+          } else { //we assume is an object
+            Object.keys(this._configuration.layers).map((key) => {
+              this.loadLayer(this._configuration.layers[key], this.map);
+              this._options.loading(i++, tot);
+            });
+          }
+
+        }
+        if (this._options.controls.draw) {
+          //this._addDrawnItems();
+          this._addDrawControl();
+        }
+        if (this._options.controls.zoom) {
+          this._addZoomControl();
+        }
+        if (this._configuration && this._configuration.maxZoom) {
+          this.map.setMaxZoom(this._configuration.maxZoom);
+        }
+        if (this._configuration && this._configuration.minZoom) {
+          this.map.setMinZoom(this._configuration.minZoom);
+        }
+        this.map.fitWorld();
+        if (this._configuration && this._configuration.center) {
+          this.map.setView(this._configuration.center, this._configuration.zoom || 0);
+        }
+        this.fire('reload');
+      }
+    },
+
+    onMap: function(ev, cl) {
+      this._eventsmap.push(ev);
+      if (this.map instanceof L.Map) {
+        this.map.on(ev, cl);
+      }
+    },
+
+    offMap: function(ev) {
+      if (this.map instanceof L.Map) this.map.off(ev);
+    },
+
+
+    loadLayer: function(configuration, where) {
+      if (!configuration) return;
+      configuration._id = this._indx++;
+      configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
+      configuration.options = configuration.options || {};
+      let layer;
+      if (!where || (!where instanceof L.LayerGroup)) {
+        where = this.map;
+      }
+      if (configuration.multiLevel && !this.map.options.multilevel) return;
+      switch (configuration.type.toLowerCase()) {
+        case 'geojson':
+          layer = this._loadGeoJSON(configuration, where)
+          break;
+        case 'tilelayer':
+          layer = this._loadTileLayer(configuration, where);
+          break;
+        case 'polygon':
+          layer = this._loadPolygon(configuration, where);
+          break;
+        case 'rectangle':
+          layer = this._loadRectangle(configuration, where);
+          break;
+        case 'circle':
+          layer = this._loadCircle(configuration, where);
+          break;
+        case 'polyline':
+          layer = this._loadPolyline(configuration, where);
+          break;
+        case 'marker':
+          layer = this._loadMarker(configuration, where);
+          break;
+        case 'circlemarker':
+          layer = this._loadCircleMarker(configuration, where);
+          break;
+        case 'guidelayer':
+          if (typeof configuration.role === 'string' && !configuration.role.includes('guide')) configuration.role += ' guide'
+          if (!configuration.role) configuration.role = 'guide'
+          layer = this._loadGridLayer(configuration, where);
+          break;
+        case 'gridlayer':
+          layer = this._loadGridLayer(configuration, where);
+          break;
+        case 'imageoverlay':
+          layer = this._loadImageOverlay(configuration, where);
+          break;
+        case 'imagelayer':
+          layer = this._loadImageOverlay(configuration, where);
+          break;
+        case 'featuregroup':
+          layer = this._loadFeatureGroup(configuration, where);
+          break;
+        case 'layergroup':
+          layer = this._loadLayerGroup(configuration, where);
+          break;
+        case 'tilelayerwms':
+          layer = this._loadTileLayerWMS(configuration, where);
+          break;
+        case 'csvtiles':
+          layer = this._loadCsvTiles(configuration, where);
+          break;
+        default:
           return;
-        } else {
-          this.clear();
-          if (this._options.controls.layers) {
-            this._addLayersControl();
-          }
-          if (this._options.controls.attribution) {
-            this._addAttributionControl();
-          }
+      }
 
-          //load all the layers
-          if (this._configuration && this._configuration.layers) {
-            let i = 0;
-            let tot = Object.keys(this._configuration.layers).length;
-            if (this._configuration.layers instanceof Array) {
-              this._configuration.layers.map((layer, key) => {
-                this.loadLayer(layer, this.map);
-                this._options.loading(i++, tot);
-              });
-            } else { //we assume is an object
-              Object.keys(this._configuration.layers).map((key) => {
-                this.loadLayer(this._configuration.layers[key], this.map);
-                this._options.loading(i++, tot);
-              });
-            }
+      if (layer) {
+        layer._id = configuration._id;
+        layer._configuration = configuration;
 
-          }
-          if (this._options.controls.draw) {
-            //this._addDrawnItems();
-            this._addDrawControl();
-          }
-          if (this._options.controls.zoom) {
-            this._addZoomControl();
-          }
-          if (this._configuration && this._configuration.maxZoom) {
-            this.map.setMaxZoom(this._configuration.maxZoom);
-          }
-          if (this._configuration && this._configuration.minZoom) {
-            this.map.setMinZoom(this._configuration.minZoom);
-          }
-          this.map.fitWorld();
-          if (this._configuration && this._configuration.center) {
-            this.map.setView(this._configuration.center, this._configuration.zoom || 0);
-          }
-          this.fire('reload');
-        }
-      },
-
-      onMap: function(ev, cl) {
-        this._eventsmap.push(ev);
-        if (this.map instanceof L.Map) {
-          this.map.on(ev, cl);
-        }
-      },
-
-      offMap: function(ev) {
-        if (this.map instanceof L.Map) this.map.off(ev);
-      },
-
-
-      loadLayer: function(configuration, where) {
-        if (!configuration) return;
-        configuration._id = this._indx++;
-        configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
-        configuration.options = configuration.options || {};
-        let layer;
-        if (!where || (!where instanceof L.LayerGroup)) {
-          where = this.map;
-        }
-        if (configuration.multiLevel && !this.map.options.multilevel) return;
-        switch (configuration.type.toLowerCase()) {
-          case 'geojson':
-            layer = this._loadGeoJSON(configuration, where)
-            break;
-          case 'tilelayer':
-            layer = this._loadTileLayer(configuration, where);
-            break;
-          case 'polygon':
-            layer = this._loadPolygon(configuration, where);
-            break;
-          case 'rectangle':
-            layer = this._loadRectangle(configuration, where);
-            break;
-          case 'circle':
-            layer = this._loadCircle(configuration, where);
-            break;
-          case 'polyline':
-            layer = this._loadPolyline(configuration, where);
-            break;
-          case 'marker':
-            layer = this._loadMarker(configuration, where);
-            break;
-          case 'circlemarker':
-            layer = this._loadCircleMarker(configuration, where);
-            break;
-          case 'guidelayer':
-            if (typeof configuration.role === 'string' && !configuration.role.includes('guide')) configuration.role += ' guide'
-            if (!configuration.role) configuration.role = 'guide'
-            layer = this._loadGridLayer(configuration, where);
-            break;
-          case 'gridlayer':
-            layer = this._loadGridLayer(configuration, where);
-            break;
-          case 'imageoverlay':
-            layer = this._loadImageOverlay(configuration, where);
-            break;
-          case 'imagelayer':
-            layer = this._loadImageOverlay(configuration, where);
-            break;
-          case 'featuregroup':
-            layer = this._loadFeatureGroup(configuration, where);
-            break;
-          case 'layergroup':
-            layer = this._loadLayerGroup(configuration, where);
-            break;
-          case 'tilelayerwms':
-            layer = this._loadTileLayerWMS(configuration, where);
-            break;
-          case 'csvtiles':
-            layer = this._loadCsvTiles(configuration, where);
-            break;
-          default:
-            return;
-        }
-
-        if (layer) {
-          layer._id = configuration._id;
-          layer._configuration = configuration;
-
-          //tooltip
-          if (configuration.tooltip) {
-            layer.bindTooltip(configuration.tooltip.content || configuration.tooltip, configuration.tooltip.options);
-          } else if (this._options.tooltip[configuration.type]) {
-            layer.bindTooltip(() => {
-              return configuration.name
-            }));
+        //tooltip
+        if (configuration.tooltip) {
+          layer.bindTooltip(configuration.tooltip.content || configuration.tooltip, configuration.tooltip.options);
+        } else if (this._options.tooltip[configuration.type]) {
+          layer.bindTooltip(() => {
+            return configuration.name
+          });
         }
         //popup
         if (configuration.popup) {
@@ -711,9 +711,9 @@ if (L != undefined) {
 
 
 
-L.mapBuilder = function(map, options, configuration) {
-  return (new L.MapBuilder(map, options, configuration));
-}
+  L.mapBuilder = function(map, options, configuration) {
+    return (new L.MapBuilder(map, options, configuration));
+  }
 
 
 }
