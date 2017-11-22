@@ -1,6 +1,6 @@
 {
     "name": "leaflet-map-builder",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "leaflet map builder from configuration object",
     "main": "leaflet-map-builder.js",
     "scripts": {
