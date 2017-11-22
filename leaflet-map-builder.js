@@ -718,7 +718,7 @@ if (L != undefined) {
         if (options.tileSize) {} else {
           options.tileSize = 256;
         }
-        let layer L.tileLayer.deepzoom(this._joinBasePath(url), options);
+        let layer = L.tileLayer.deepzoom(this._joinBasePath(url), options);
         return layer;
       }
     }
