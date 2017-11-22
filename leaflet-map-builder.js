@@ -319,13 +319,17 @@ if (L != undefined) {
         if (configuration.tooltip) {
           layer.bindTooltip(configuration.tooltip.content || configuration.tooltip, configuration.tooltip.options);
         } else if (this._options.tooltip[configuration.type]) {
-          layer.bindTooltip(configuration.name);
+          layer.bindTooltip(()=>{
+            return configuration.name
+          });
         }
         //popup
         if (configuration.popup) {
           layer.bindPopup(configuration.popup.content || configuration.popup, configuration.popup.options);
         } else if (this._options.popup[configuration.type]) {
-          layer.bindPopup(`${configuration.name}  <p>${configuration.details || ''}</p>`);
+          layer.bindPopup(()=>{
+            return `${configuration.name}  <p>${configuration.details || ''}</p>`
+          })
         }
 
         //guide role
