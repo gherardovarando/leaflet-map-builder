@@ -4,7 +4,7 @@
 
 ## demo at <https://gherardovarando.github.io/leaflet-map-builder/>
 
-leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format. leaflet-map-builder can create the following type of layers:
+leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format (see [map.schema.json](https://github.com/gherardovarando/map.schema.json)). leaflet-map-builder can create the following type of layers:
 
 - tileLayer
 - tileLayerWMS
@@ -17,7 +17,7 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - circle
 - polyline
 - marker
-- circlemarker
+- circleMarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
 - [deepZoom](https://github.com/alfarisi/leaflet-deepzoom)
 
@@ -46,7 +46,6 @@ It also supports the following controls:
 
 The option that can be passed on creation
 
-- `drawingColor` String, the color to draw
 - `controls`:
 
   - `draw` L.Control.Draw options
@@ -73,18 +72,19 @@ The option that can be passed on creation
 
 #### Configuration
 
-The configuration object that defines the layers that will be added to the map.
+The configuration object that defines the map, something like [map.schema.json](https://github.com/gherardovarando/map.schema.json) but slightly more permissive.
 
 - `type`, String equal to `map` otherwise the configuration will not be loaded.
 - `name`, String (optional).
-- `authors`, String (optional).
 - `layers`, array or object of layer configuration objects (optional).
 - `center`, Array (optional), where the map has to be centered on loading.
 - `zoom`, Integer (optional), zoom to be set in loading.
 
-##### Layer configuration
+##### Layer configuration object
 
-- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circlemarker, csvTiles, tileLayerMultiSlice.
+An object that validates against [layer.schema.json](https://github.com/gherardovarando/map.schema.json), or slightly more permissive.
+
+- `type` String, one of the possible layer types.
 - `name` String (optional).
 - `role` String (optional), a string of type `role1 role2 role3` where each role can be one of the following:
 
@@ -94,7 +94,9 @@ The configuration object that defines the layers that will be added to the map.
 - `author` String (optional).
 
 - `details` String (optional).
+
 - `multiLevel` Logical, use the multiLevel (`.ml`) verison of the type of layer works for tileLayer.
+
 - `popup` String or object:
 
   - `content` String the content of the popup
@@ -105,7 +107,7 @@ The configuration object that defines the layers that will be added to the map.
   - `content` String the content of the tooltip
   - `options` Object, tooltip options.
 
-Plus, other layer-dependent options:
+Plus, other layer-dependent options depending on the value of `type`:
 
 ###### tileLayer
 
@@ -186,6 +188,7 @@ Crete a grid of circle markers, if `role` includes `guide` it creates a snapping
 
 - `url`
 - `options` Options object:
+
   - `width` Number, width of the original image
   - `height` Number, height of the original image
   - `imageFormat` String , default to `'jpg'`

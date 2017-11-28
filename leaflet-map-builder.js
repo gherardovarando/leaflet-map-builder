@@ -39,6 +39,8 @@ if (L != undefined) {
       baseLayerOn: false
     },
     _options: {
+      mapid: 'map',
+      map: {},
       loading: () => {},
       controls: {
         draw: false, // logical, options of configuration
