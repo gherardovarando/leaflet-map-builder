@@ -680,14 +680,11 @@ if (L != undefined) {
       //create layer
       let url = configuration.url || configuration.urlTemplate
       if (url) { //check if there is the tilesUrlTemplate
-        if (L.csvTiles) {
+        if (typeof L.csvTiles === 'function') {
           let layer = L.csvTiles(this._joinBasePath(url), configuration.options);
           return layer;
         } else {
-          throw {
-            type: "leaflet-csvTiles plugin error",
-            message: 'leaflet-csvTiles is not loaded, please load it before attempting to load a csvTile'
-          };
+          console.log('leaflet-csvTiles is not loaded, please load it before attempting to load a csvTile');
         }
       }
     },
@@ -726,8 +723,6 @@ if (L != undefined) {
     }
 
   });
-
-
 
 
   L.mapBuilder = function(map, options, configuration) {
