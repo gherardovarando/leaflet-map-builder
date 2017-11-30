@@ -21,6 +21,21 @@
 
 if (L != undefined) {
 
+  const protocols = ['http://', 'https://', 'file://'];
+
+  const baseUrl = function(url){
+    return url.substring(0, url.lastIndexOf('/'));
+  }
+
+  const isUrl = function(url) {
+    if (typeof url === 'string') {
+      return (protocols.some((p) => {
+        return url.startsWith(p);
+      }));
+    } else {
+      return false;
+    }
+  }
   /**
    * MapBuilder Class
    */
@@ -123,6 +138,15 @@ if (L != undefined) {
 
     setConfiguration: function(configuration) {
       if (!configuration) return;
+      if (isUrl(configuration)) {
+        this.fetchConfig(configuration, (conf) => {
+          this._configuration = this._parse(configuration);
+          this.fire('set:configuration', {
+            configuration: this._configuration
+          });
+          this.reload();
+        });
+      }
       this._configuration = this._parse(configuration);
       this.fire('set:configuration', {
         configuration: this._configuration
@@ -249,8 +273,44 @@ if (L != undefined) {
     },
 
 
+    fetchConfig(url, cl) {
+      if (!typeof configuration === 'string') return;
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = () => {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+          try {
+            var conf = JSON.parse(xmlhttp.responseText);
+            // if (conf === url) { //avoiding loop
+            //   conf = null;
+            // }
+            if (typeof cl === 'function') cl(conf);
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      }
+      xmlhttp.open("GET", url, true);
+      xmlhttp.send();
+    },
+
+
     loadLayer: function(configuration, where) {
       if (!configuration) return;
+      if (typeof configuration === 'string') {
+        let url = this._joinBasePath(configuration);
+        this.fetchConfig(url, (config) => {
+          if (typeof config.url === 'string') {
+            if (!isUrl(config.url)) {
+              if (!config.url.startsWith(url)) {
+                config.url = baseUrl(url) + config.url;
+              }
+            }
+          }
+          console.log(config.url);
+          this.loadLayer(config)
+        });
+        return;
+      }
       configuration._id = this._indx++;
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
       configuration.options = configuration.options || {};
@@ -424,9 +484,7 @@ if (L != undefined) {
         options.edit = false;
       } else {
         Object.assign(options, this._options.controls.draw);
-        if (options.draw) {
-          options.draw = Object.assign({}, options.draw);
-        }
+        options.draw = Object.assign({}, options.draw);
         let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
         keys.map((tag) => {
           if (options.draw[tag]) {
@@ -697,9 +755,8 @@ if (L != undefined) {
     },
 
     _joinBasePath: function(url) {
-      let basePath = this._configuration.basePath;
-      if (url.startsWith("http") ||
-        url.startsWith("file:")) {
+      let basePath = this._configuration.basePath || '';
+      if (isUrl(url)) {
         return url;
       }
       if (url.startsWith(basePath)) {
