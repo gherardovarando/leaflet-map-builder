@@ -40,7 +40,7 @@ It also supports the following controls:
 
 - `map` leaflet map object, instance of `L.Map` (optional)
 - `options` options object (optional)
-- `configuration` configuration object (optional), it can be set in a second time with `setConfiguration` method.
+- `configuration` string or configuration object (optional), it can be set in a second time with `setConfiguration` method. If string must be the url of a json object.
 
 #### Options
 
@@ -350,7 +350,7 @@ Associate the leaflet map object
 
 ##### `setConfiguration(configuration)`
 
-- `configuration` configuration object
+- `configuration` configuration object or string (url of a json object).
 
 Set the configuration object and load it.
 
