@@ -76,14 +76,17 @@ The configuration object that defines the map, something like [map.schema.json](
 
 - `type`, String equal to `map` otherwise the configuration will not be loaded.
 - `name`, String (optional).
-- `layers`, array or object of layer configuration objects (optional).
+- `layers`, array or object of [layers](#layer-configuration) (optional).
 - `center`, Array (optional), where the map has to be centered on loading.
 - `zoom`, Integer (optional), zoom to be set in loading.
 
-##### Layer configuration object
+##### Layer configuration
 
-An object that validates against [layer.schema.json](https://github.com/gherardovarando/map.schema.json), or slightly more permissive.
+Object or string.
+- A string it is interpreted as a url to a json file containing the layer configuration, in this case the file will be fetched and the `url` field in the layer configuration will be completed (or we try to).
+- An object that validates against [layer.schema.json](https://github.com/gherardovarando/map.schema.json), or slightly more permissive.
 
+Field of the layer configuration object.
 - `type` String, one of the possible layer types.
 - `name` String (optional).
 - `role` String (optional), a string of type `role1 role2 role3` where each role can be one of the following:
