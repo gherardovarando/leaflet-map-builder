@@ -24,7 +24,7 @@ if (L != undefined) {
   const protocols = ['http://', 'https://', 'file://'];
 
   const baseUrl = function(url){
-    return url.substring(0, url.lastIndexOf('/'));
+    return url.substring(0, url.lastIndexOf('/') + 1);
   }
 
   const isUrl = function(url) {
@@ -140,12 +140,14 @@ if (L != undefined) {
       if (!configuration) return;
       if (isUrl(configuration)) {
         this.fetchConfig(configuration, (conf) => {
-          this._configuration = this._parse(configuration);
+          conf.basePath = baseUrl(configuration);
+          this._configuration = this._parse(conf);
           this.fire('set:configuration', {
             configuration: this._configuration
           });
           this.reload();
         });
+        return;
       }
       this._configuration = this._parse(configuration);
       this.fire('set:configuration', {
@@ -279,6 +281,7 @@ if (L != undefined) {
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
           try {
+            console.log(xmlhttp.responseText);
             var conf = JSON.parse(xmlhttp.responseText);
             // if (conf === url) { //avoiding loop
             //   conf = null;
