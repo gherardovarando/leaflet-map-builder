@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/leaflet-map-builder.svg)](https://badge.fury.io/js/leaflet-map-builder)
+[![MIT Licence](https://badges.frapsoft.com/os/mit/mit.png?v=103)](https://opensource.org/licenses/mit-license.php)
 # Leaflet Map Builder
 
 ## by gherardo.varando [gherardo.varando@gmail.com](mailto:gherardo.varando@gmail.com)
