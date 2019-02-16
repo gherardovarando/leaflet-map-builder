@@ -1,13 +1,13 @@
+[![npm version](https://badge.fury.io/js/leaflet-map-builder.svg)](https://badge.fury.io/js/leaflet-map-builder)
+[![MIT Licence](https://badges.frapsoft.com/os/mit/mit.png?v=103)](https://opensource.org/licenses/mit-license.php)
 # Leaflet Map Builder
-
-## by gherardo.varando [gherardo.varando@gmail.com](mailto:gherardo.varando@gmail.com)
 
 ## demo at <https://gherardovarando.github.io/leaflet-map-builder/>
 
-leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format. leaflet-map-builder can create the following type of layers:
+leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format (see [map.schema.json](https://github.com/gherardovarando/map.schema.json)). leaflet-map-builder can create the following type of layers:
 
 - tileLayer
-- tileLayerWMS
+- til(or into the associated leaflet `map`)eLayerWMS
 - imageOverlay
 - featureGroup
 - layerGroup
@@ -17,8 +17,9 @@ leaflet-map-builder is a leaflet plugin that permits to build a leaflet map star
 - circle
 - polyline
 - marker
-- circlemarker
+- circleMarker
 - [csvTiles](https://github.com/gherardovarando/leaflet-csvtiles)
+- [deepZoom](https://github.com/alfarisi/leaflet-deepzoom)
 
 It works fine with [leaflet-multilevel](https://github.com/gherardovarando/leaflet-multilevel/), through the `multiLevel` option in layer configuration (see [Layer configuration](#layer-configuration)).
 
@@ -27,7 +28,6 @@ It also supports the following controls:
 - LayersControl
 - zoomControl
 - attributionControl
-- drawControl (via Leafelt.draw and works well with leaflet.snap)
 
 ### If you want to add support for a particular layer or control just fork the repository, implement the new layer appropriate method and (if you want) make a pull request.
 
@@ -39,13 +39,12 @@ It also supports the following controls:
 
 - `map` leaflet map object, instance of `L.Map` (optional)
 - `options` options object (optional)
-- `configuration` configuration object (optional), it can be set in a second time with `setConfiguration` method.
+- `configuration` string or configuration object (optional), it can be set in a second time with `setConfiguration` method. If string must be the url of a json object.
 
 #### Options
 
 The option that can be passed on creation
 
-- `drawingColor` String, the color to draw
 - `controls`:
 
   - `draw` L.Control.Draw options
@@ -72,18 +71,22 @@ The option that can be passed on creation
 
 #### Configuration
 
-The configuration object that defines the layers that will be added to the map.
+The configuration object that defines the map, something like [map.schema.json](https://github.com/gherardovarando/map.schema.json) but slightly more permissive.
 
 - `type`, String equal to `map` otherwise the configuration will not be loaded.
 - `name`, String (optional).
-- `authors`, String (optional).
-- `layers`, array or object of layer configuration objects (optional).
+- `layers`, array or object of [layers](#layer-configuration) (optional).
 - `center`, Array (optional), where the map has to be centered on loading.
 - `zoom`, Integer (optional), zoom to be set in loading.
 
 ##### Layer configuration
 
-- `type` String, one of the possible layer types: tileLayer, tileLayerWMS, imageOverlay (or imageLayer), featureGroup, layerGroup, polygon, polyline, rectangle, circle, marker, circlemarker, csvTiles, tileLayerMultiSlice.
+Object or string.
+- A string it is interpreted as a url to a json file containing the layer configuration, in this case the file will be fetched and the `url` field in the layer configuration will be completed (or we try to).
+- An object that validates against [layer.schema.json](https://github.com/gherardovarando/map.schema.json), or slightly more permissive.
+
+Field of the layer configuration object.
+- `type` String, one of the possible layer types.
 - `name` String (optional).
 - `role` String (optional), a string of type `role1 role2 role3` where each role can be one of the following:
 
@@ -91,8 +94,11 @@ The configuration object that defines the layers that will be added to the map.
   - `guide` the given layer will be used as snap guideLayer, works for polygon, polyline, rectangle, marker, circlemarker, featureGroup, layerGroup.
 
 - `author` String (optional).
+
 - `details` String (optional).
+
 - `multiLevel` Logical, use the multiLevel (`.ml`) verison of the type of layer works for tileLayer.
+
 - `popup` String or object:
 
   - `content` String the content of the popup
@@ -103,7 +109,7 @@ The configuration object that defines the layers that will be added to the map.
   - `content` String the content of the tooltip
   - `options` Object, tooltip options.
 
-Plus, other layer-dependent options:
+Plus, other layer-dependent options depending on the value of `type`:
 
 ###### tileLayer
 
@@ -133,7 +139,7 @@ Plus, other layer-dependent options:
 
 - `layers` Object, layers configurations
 
-####### GeoJSON
+###### # GeoJSON
 
 - `data` geoJSON object
 - `options`
@@ -173,12 +179,23 @@ Plus, other layer-dependent options:
 Crete a grid of circle markers, if `role` includes `guide` it creates a snapping guide for drawing.
 
 - `options` Options object:
-   - `size`
-   - `tileSize`
-   - `color`
-   - `radius`
-   - `fillColor`
 
+  - `size`
+  - `tileSize`
+  - `color`
+  - `radius`
+  - `fillColor`
+
+###### deepZoom
+
+- `url`
+- `options` Options object:
+
+  - `width` Number, width of the original image
+  - `height` Number, height of the original image
+  - `imageFormat` String , default to `'jpg'`
+  - `tileSize` Number, default to `256`
+  - `maxZoom` Number, optional
 
 ###### Example
 
@@ -332,7 +349,7 @@ Associate the leaflet map object
 
 ##### `setConfiguration(configuration)`
 
-- `configuration` configuration object
+- `configuration` configuration object or string (url of a json object).
 
 Set the configuration object and load it.
 
@@ -355,7 +372,7 @@ Reload (clean and load) the map with the current options and configuration. That
 
 Returns `layer` the leaflet layer.
 
-Load the layer specified by the `configuration` in `where` (or into the associated leaflet `map`).
+Load the layer specified by the `configuration` in `where`.
 
 ##### `onMap(event, cl)`
 
