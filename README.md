@@ -2,8 +2,6 @@
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.png?v=103)](https://opensource.org/licenses/mit-license.php)
 # Leaflet Map Builder
 
-## by gherardo.varando [gherardo.varando@gmail.com](mailto:gherardo.varando@gmail.com)
-
 ## demo at <https://gherardovarando.github.io/leaflet-map-builder/>
 
 leaflet-map-builder is a leaflet plugin that permits to build a leaflet map starting from a configuration object that can be easily stored in JSON format (see [map.schema.json](https://github.com/gherardovarando/map.schema.json)). leaflet-map-builder can create the following type of layers:
@@ -30,9 +28,7 @@ It also supports the following controls:
 - LayersControl
 - zoomControl
 - attributionControl
-- drawControl (via Leafelt.draw and works well with leaflet.snap)
 
-### If you want to add support for a particular layer or control just fork the repository, implement the new layer appropriate method and (if you want) make a pull request.
 
 ## API
 
@@ -375,7 +371,7 @@ Reload (clean and load) the map with the current options and configuration. That
 
 Returns `layer` the leaflet layer.
 
-Load the layer specified by the `configuration` in `where` (or into the associated leaflet `map`).
+Load the layer specified by the `configuration` in `where`.
 
 ##### `onMap(event, cl)`
 
