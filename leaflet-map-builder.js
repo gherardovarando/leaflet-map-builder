@@ -58,7 +58,6 @@ if (L != undefined) {
       map: {},
       loading: () => {},
       controls: {
-        draw: false, // logical, options of configuration
         zoom: false, // logical, options of configuration
         layers: false, // logical, options of configuration or function for external control
         attribution: false
@@ -175,9 +174,6 @@ if (L != undefined) {
         this.map.eachLayer((layer) => {
           if (this.map.hasLayer(layer)) this.map.removeLayer(layer);
         });
-        if (L.Control.Draw && this._controls.draw instanceof L.Control.Draw) {
-          this.map.removeControl(this._controls.draw);
-        }
 
         if (this._controls.layers instanceof L.Control.Layers) {
           this.map.removeControl(this._controls.layers);
@@ -191,14 +187,12 @@ if (L != undefined) {
         this._removeMapListener();
       }
       this._controls = {}
-      this._drawnItems = null;
       this._indx = 0;
       this._nameIndx = 0;
       this._size = null;
       this._eventsmap = [];
       this._state.baseLayerOn = false;
       this._activeBaseLayer = null;
-      this._guides = [];
       if (c) {
         this._configuration = null
       }
@@ -242,10 +236,6 @@ if (L != undefined) {
           }
 
         }
-        if (this._options.controls.draw) {
-          //this._addDrawnItems();
-          this._addDrawControl();
-        }
         if (this._options.controls.zoom) {
           this._addZoomControl();
         }
@@ -281,11 +271,8 @@ if (L != undefined) {
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
           try {
-            console.log(xmlhttp.responseText);
+            //console.log(xmlhttp.responseText);
             var conf = JSON.parse(xmlhttp.responseText);
-            // if (conf === url) { //avoiding loop
-            //   conf = null;
-            // }
             if (typeof cl === 'function') cl(conf);
           } catch (e) {
             console.log(e);
@@ -309,7 +296,7 @@ if (L != undefined) {
               }
             }
           }
-          console.log(config.url);
+          //console.log(config.url);
           this.loadLayer(config)
         });
         return;
@@ -433,7 +420,6 @@ if (L != undefined) {
           }
         }
 
-
         //fire the event
         this.fire('load:layer', {
           layer: layer,
@@ -444,74 +430,7 @@ if (L != undefined) {
       return layer;
     },
 
-    _addDrawnItems: function() {
-      this._drawnItems = this.loadLayer({
-        name: 'drawnItems',
-        role: 'drawnItems',
-        type: 'featureGroup',
-        layers: {}
-      });
-      this.fire('add:drawnitems', {
-        configuration: {
-          name: 'drawnItems',
-          role: 'drawnItems',
-          type: 'featureGroup',
-          layers: {}
-        }
-      });
-    },
 
-
-    _updateGuides: function(guides) {
-      if (guides && guides.length >= 0) this._guides = guides;
-      let options = {};
-      let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
-      keys.map((tag) => {
-        if (this._options.controls && this._options.controls.draw && this._options.controls.draw[tag]) {
-          options[tag] = {
-            guideLayers: this._guides
-          }
-        }
-      });
-      if (this._controls.draw) {
-        this._controls.draw.setDrawingOptions(options);
-      }
-    },
-
-    _addDrawControl: function() {
-      if (!L.Control.Draw) return;
-      if (!this._drawnItems) this._addDrawnItems();
-      let options = {};
-      if (!this._options.controls.draw) {
-        options.draw = false;
-        options.edit = false;
-      } else {
-        Object.assign(options, this._options.controls.draw);
-        options.draw = Object.assign({}, options.draw);
-        let keys = ['polygon', 'polyline', 'circle', 'rectangle', 'marker', 'circlemarker'];
-        keys.map((tag) => {
-          if (options.draw[tag]) {
-            options.draw[tag] = Object.assign({
-              guideLayers: this._guides
-            }, options.draw[tag]);
-          }
-        });
-        if (options.edit) {
-          options.edit = Object.assign({}, options.edit);
-          options.edit = Object.assign(options.edit, {
-            featureGroup: this._drawnItems
-          });
-        }
-      }
-      let drawControl = new L.Control.Draw(options);
-      this._controls.draw = drawControl;
-      if (this.map instanceof L.Map) this.map.addControl(drawControl);
-      this.fire('load:control', {
-        controlType: 'draw',
-        control: this._controls.draw,
-        featureGroup: this._drawnItems
-      })
-    },
 
     _addLayersControl: function() {
       if (typeof this._options.controls.layers === 'function') return; //external controls
@@ -548,9 +467,6 @@ if (L != undefined) {
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
       configuration.layers = configuration.layers || {};
       let layer = L.featureGroup();
-      if (typeof configuration.role === 'string' && configuration.role.includes('drawnItems')) {
-        this._drawnItems = layer;
-      }
       Object.keys(configuration.layers).map((key) => {
         this.loadLayer(configuration.layers[key], layer);
       });
@@ -561,7 +477,6 @@ if (L != undefined) {
       configuration.name = configuration.name || `${configuration.type}_${configuration._id}`;
       configuration.layers = configuration.layers || {};
       let layer = L.featureGroup();
-      //this.map.addLayer(layer);
       Object.keys(configuration.layers).map((key) => {
         this.loadLayer(configuration.layers[key], layer);
       });
@@ -575,7 +490,6 @@ if (L != undefined) {
         configuration.points ||
         configuration.coordinates ||
         configuration.coords || [configuration.lats || configuration.y, configuration.langs || configuration.x], configuration.options || {});
-
       return layer;
     },
 
@@ -602,7 +516,7 @@ if (L != undefined) {
 
     _loadCircleMarker: function(configuration) {
       let opt = Object.assign({
-        radius: 10
+        radius: 1
       }, configuration.options);
       let layer = L.circleMarker(configuration.latlng ||
         configuration.latLng ||
@@ -610,7 +524,6 @@ if (L != undefined) {
         configuration.point ||
         configuration.coordinate ||
         configuration.coord || [configuration.lat || configuration.y, configuration.lang || configuration.x], opt);
-
       return layer;
     },
 

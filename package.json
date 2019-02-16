@@ -17,7 +17,7 @@
         "build-system"
     ],
     "dependencies": {
-        "leaflet": "~1.0.2"
+        "leaflet": "~1.4.0"
     },
     "author": "Gherardo Varando <gherardo.varando@gmail.com>",
     "license": "MIT",
