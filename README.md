@@ -46,7 +46,6 @@ The option that can be passed on creation
 
 - `controls`:
 
-  - `draw` L.Control.Draw options
   - `zoom` L.Control.Zoom options
   - `layers` L.Control.Layers options or a function `function(layer, configuration, where)`, if `null` or `false` the layers will be added to the map directly.
 
