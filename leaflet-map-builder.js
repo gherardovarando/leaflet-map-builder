@@ -486,7 +486,7 @@ if (L != undefined) {
     _loadPolygon: function(configuration) {
       let fun = L.polygon
       if (configuration.multiLevel && (typeof L.polygon.ml === 'function')) fun = L.polygon.ml
-      let layer = L.polygon(configuration.latlngs ||
+      let layer = fun(configuration.latlngs ||
         configuration.latLngs ||
         configuration.path ||
         configuration.points ||
@@ -518,15 +518,17 @@ if (L != undefined) {
     _loadPolyline: function(configuration) {
       let fun = L.polyline
       if (configuration.multiLevel && (typeof L.polyline.ml === 'function')) fun = L.polyline.ml
-      let layer = L.polyline(configuration.latlngs, configuration.options || {});
+      let layer = fun(configuration.latlngs, configuration.options || {});
       return layer;
     },
 
     _loadCircleMarker: function(configuration) {
+      let fun = L.circleMarker
+      if (configuration.multiLevel && (typeof L.circleMarker.ml === 'function')) fun = L.circleMarker.ml
       let opt = Object.assign({
         radius: 1
       }, configuration.options);
-      let layer = L.circleMarker(configuration.latlng ||
+      let layer = fun(configuration.latlng ||
         configuration.latLng ||
         configuration.center ||
         configuration.point ||
