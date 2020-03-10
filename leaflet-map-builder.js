@@ -23,7 +23,7 @@ if (L != undefined) {
 
   const protocols = ['http://', 'https://', 'file://'];
 
-  const baseUrl = function(url){
+  const baseUrl = function(url) {
     return url.substring(0, url.lastIndexOf('/') + 1);
   }
 
@@ -484,7 +484,9 @@ if (L != undefined) {
     },
 
     _loadPolygon: function(configuration) {
-      let layer = L.polygon(configuration.latlngs ||
+      let fun = L.polygon
+      if (configuration.multiLevel && (typeof L.polygon.ml === 'function')) fun = L.polygon.ml
+      let layer = fun(configuration.latlngs ||
         configuration.latLngs ||
         configuration.path ||
         configuration.points ||
@@ -494,7 +496,9 @@ if (L != undefined) {
     },
 
     _loadRectangle: function(configuration) {
-      let layer = L.rectangle(configuration.bounds || configuration.latlngs ||
+      let fun = L.rectangle
+      if (configuration.multiLevel && (typeof L.circle.ml === 'function')) fun = L.rectangle.ml
+      let layer = fun(configuration.bounds || configuration.latlngs ||
         configuration.latLngs ||
         configuration.path ||
         configuration.points ||
@@ -505,20 +509,26 @@ if (L != undefined) {
 
 
     _loadCircle: function(configuration) {
-      let layer = L.circle(configuration.latlng || configuration.center, configuration.options || {});
+      let fun = L.circle
+      if (configuration.multiLevel && (typeof L.circle.ml === 'function')) fun = L.circle.ml
+      let layer = fun(configuration.latlng || configuration.center, configuration.options || {});
       return layer;
     },
 
     _loadPolyline: function(configuration) {
-      let layer = L.polyline(configuration.latlngs, configuration.options || {});
+      let fun = L.polyline
+      if (configuration.multiLevel && (typeof L.polyline.ml === 'function')) fun = L.polyline.ml
+      let layer = fun(configuration.latlngs, configuration.options || {});
       return layer;
     },
 
     _loadCircleMarker: function(configuration) {
+      let fun = L.circleMarker
+      if (configuration.multiLevel && (typeof L.circleMarker.ml === 'function')) fun = L.circleMarker.ml
       let opt = Object.assign({
         radius: 1
       }, configuration.options);
-      let layer = L.circleMarker(configuration.latlng ||
+      let layer = fun(configuration.latlng ||
         configuration.latLng ||
         configuration.center ||
         configuration.point ||
@@ -528,6 +538,8 @@ if (L != undefined) {
     },
 
     _loadMarker: function(configuration) {
+      let fun = L.polyline
+      if (configuration.multiLevel && (typeof L.marker.ml === 'function')) fun = L.marker.ml
       let opt = Object.assign({
         icon: {
           options: {}
@@ -539,7 +551,7 @@ if (L != undefined) {
         opt.icon = L.icon(opt.icon.options);
       }
 
-      let layer = L.marker(configuration.latlng ||
+      let layer = fun(configuration.latlng ||
         configuration.latLng ||
         configuration.point ||
         configuration.coordinate ||
