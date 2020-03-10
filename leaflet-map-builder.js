@@ -538,7 +538,7 @@ if (L != undefined) {
     },
 
     _loadMarker: function(configuration) {
-      let fun = L.polyline
+      let fun = L.marker
       if (configuration.multiLevel && (typeof L.marker.ml === 'function')) fun = L.marker.ml
       let opt = Object.assign({
         icon: {
