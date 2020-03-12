@@ -109,7 +109,6 @@ if (L != undefined) {
     },
 
 
-
     /**
      * parse the configuration object
      * @param  {Object, String} configuration
@@ -245,9 +244,10 @@ if (L != undefined) {
         if (this._configuration && this._configuration.minZoom) {
           this.map.setMinZoom(this._configuration.minZoom);
         }
-        this.map.fitWorld();
         if (this._configuration && this._configuration.center) {
           this.map.setView(this._configuration.center, this._configuration.zoom || 0);
+        } else {
+          this.map.fitWorld();
         }
         this.fire('reload');
       }
@@ -677,9 +677,16 @@ if (L != undefined) {
 
     _loadGeoJSON: function(configuration, where) {
       let data;
+      if (typeof configuration.data == 'string') {
+        this.fetchConfig(this._joinBasePath(configuration.data), (obj) => {
+          configuration.data = obj;
+          this.loadLayer(configuration, where);
+        });
+        return;
+      }
       if (configuration.data) data = configuration.data;
       else return;
-      return L.geoJSON(data);
+      return L.geoJSON(data, configuration.options);
     },
 
     _joinBasePath: function(url) {
